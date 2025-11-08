@@ -28,11 +28,15 @@ public:
 
 public:
 	// Components
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class USpringArmComponent* SpringArm;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UCameraComponent* Camera;
+
+	// 들고 있는 물체를 고정시킬 위치
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USceneComponent* HoldPosition;
 
 public:
 	// UI
@@ -41,4 +45,22 @@ public:
 
 	UPROPERTY()
 	class UMyPlayerWidget* PlayerWidget;
+
+protected:
+	// Interaction
+	// Line Trace 최대 거리
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float InteractDistance = 1000.0f;
+
+public:
+	UPROPERTY()
+	class UInteractableComponent* HoldingInteractable;
+	
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void TryPickUp();
+
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void TryDrop();
+	
+	UInteractableComponent* DetectInteractable();
 };

@@ -27,6 +27,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* InteractAction;
+
 protected:
 	// Look 함수
 	UPROPERTY(EditDefaultsOnly, Category="Look")
@@ -37,4 +40,12 @@ protected:
 	
 	UFUNCTION()
 	void Look(const FInputActionValue& Value);
+
+protected:
+	UFUNCTION()
+	void Grab(const FInputActionValue& Value);
+	
+	UFUNCTION()
+	void Release(const FInputActionValue& Value);
+	
 };

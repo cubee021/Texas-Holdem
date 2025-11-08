@@ -5,6 +5,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "MyPlayer.h"
+#include "Components/InteractableComponent.h"
 
 void AMyPlayerController::BeginPlay()
 {
@@ -27,11 +29,10 @@ void AMyPlayerController::SetupInputComponent()
 	// Enhanced Input Component로 캐스팅
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		// Look Action 바인딩
-		if (LookAction)
-		{
-			EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyPlayerController::Look);
-		}
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyPlayerController::Look);
+
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AMyPlayerController::Grab);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AMyPlayerController::Release);
 	}
 }
 
@@ -55,3 +56,22 @@ void AMyPlayerController::Look(const FInputActionValue& Value)
 		SetControlRotation(NewRotation);
 	}
 }
+
+void AMyPlayerController::Grab(const FInputActionValue& Value)
+{
+	AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
+	if (MyPlayer)
+	{
+		MyPlayer->TryPickUp();
+	}
+}
+
+void AMyPlayerController::Release(const FInputActionValue& Value)
+{
+	AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
+	if (MyPlayer)
+	{
+		MyPlayer->TryDrop();
+	}
+}
+
