@@ -98,6 +98,8 @@ void UInteractableComponent::Server_PickUp_Implementation()
 void UInteractableComponent::Drop()
 {
 	Server_Drop();
+
+	GetOwner()->SetOwner(nullptr);
 }
 
 void UInteractableComponent::Server_Drop_Implementation()

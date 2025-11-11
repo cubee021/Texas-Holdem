@@ -23,15 +23,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* InputMappingContext;
 
-	// Input Actions
+protected:
+	// Look
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* LookAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* InteractAction;
-
-protected:
-	// Look 함수
+	
 	UPROPERTY(EditDefaultsOnly, Category="Look")
 	float MaxLook = 10.0f;
 
@@ -42,6 +38,10 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 protected:
+	// Interact
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* InteractAction;
+	
 	UFUNCTION()
 	void Grab(const FInputActionValue& Value);
 
@@ -53,5 +53,18 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void Server_Release();
+
+protected:
+	// Rotate
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* RotateAction;
+
+	UPROPERTY(EditAnywhere, Category = "Rotation")
+	float RotationSpeed = 30.f;
 	
+	UFUNCTION()
+	void RotateHoldingItem(const FInputActionValue& Value);
+
+	UFUNCTION(Server, Reliable)
+	void Server_RotateHoldingItem(float Value);
 };

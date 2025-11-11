@@ -33,6 +33,8 @@ void AMyPlayerController::SetupInputComponent()
 
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AMyPlayerController::Grab);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AMyPlayerController::Release);
+
+		EnhancedInputComponent->BindAction(RotateAction, ETriggerEvent::Triggered, this, &AMyPlayerController::RotateHoldingItem);
 	}
 }
 
@@ -76,6 +78,29 @@ void AMyPlayerController::Server_Grab_Implementation()
 void AMyPlayerController::Release(const FInputActionValue& Value)
 {
 	Server_Release();
+}
+
+void AMyPlayerController::RotateHoldingItem(const FInputActionValue& Value)
+{
+	const float v = Value.Get<float>();
+	
+	if (FMath::Abs(v) > 0.01f)
+	{
+		Server_RotateHoldingItem(v * RotationSpeed);
+	}
+}
+
+void AMyPlayerController::Server_RotateHoldingItem_Implementation(float Value)
+{
+	AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
+	if (MyPlayer && MyPlayer->HoldingInteractable)
+	{
+		AActor* HoldingActor = MyPlayer->HoldingInteractable->GetOwner();
+
+		FRotator CurrentRotation = HoldingActor->GetActorRotation();
+		CurrentRotation.Roll += Value;
+		HoldingActor->SetActorRotation(CurrentRotation);
+	}
 }
 
 void AMyPlayerController::Server_Release_Implementation()
