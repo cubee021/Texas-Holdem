@@ -42,7 +42,7 @@ void AMyPlayerController::Look(const FInputActionValue& Value)
 	const FVector2D LookAxisVector = Value.Get<FVector2D>();
 
 	// 폰이 있는 경우 회전 입력 추가
-	if (APawn* ControlledPawn = GetPawn())
+	if (AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn()))
 	{
 		FRotator CurrentRotation = GetControlRotation();
 
@@ -52,7 +52,9 @@ void AMyPlayerController::Look(const FInputActionValue& Value)
 
 		// 각도 제한 - Pitch(상하)만 제한
 		NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch, MinLook, MaxLook);
-
+		
+		MyPlayer->LookPitch = NewRotation.Pitch;
+		
 		SetControlRotation(NewRotation);
 	}
 }

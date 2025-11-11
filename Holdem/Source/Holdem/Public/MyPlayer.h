@@ -52,12 +52,15 @@ protected:
 	// Line Trace 최대 거리
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float InteractDistance = 1000.0f;
-	
-	// Camera Look Rotation (NOT replicated, updated via Multicast)
-	FRotator LookRotation;
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void Multicast_SetLookRotation(FRotator NewRotation);
+public:
+	// 서버쪽 pitch 수동으로 동기화
+	// bUsePawnControlRotation은 서버->클라로 전달 안됨
+	UPROPERTY(ReplicatedUsing=OnRep_LookPitch)
+	float LookPitch;
+
+	UFUNCTION()
+	void OnRep_LookPitch();
 
 public:
 	UPROPERTY()

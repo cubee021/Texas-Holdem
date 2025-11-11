@@ -35,7 +35,7 @@ AMyPlayer::AMyPlayer()
 	SpringArm->bUsePawnControlRotation = true;
 
 	HoldingInteractable = nullptr;
-	LookRotation = FRotator::ZeroRotator;
+	LookPitch = 0.f;
 }
 
 // Called when the game starts or when spawned
@@ -57,7 +57,8 @@ void AMyPlayer::BeginPlay()
 void AMyPlayer::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	// LookRotation은 Replicated 변수가 아니므로 여기에 추가하지 않음
+
+	DOREPLIFETIME(AMyPlayer, LookPitch);
 }
 
 // Called every frame
@@ -65,28 +66,6 @@ void AMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 서버에서만 실행: 각 플레이어의 ControlRotation을 Multicast
-	if (GetLocalRole() == ROLE_Authority && Controller)
-	{
-		FRotator CurrentRotation = GetControlRotation();
-		Multicast_SetLookRotation(CurrentRotation);
-	}
-	// 원격 플레이어: LookRotation으로 SpringArm 업데이트
-	else if (!IsLocallyControlled() && SpringArm)
-	{
-		FRotator NewRotation = SpringArm->GetComponentRotation();
-		NewRotation.Pitch = LookRotation.Pitch;
-		SpringArm->SetWorldRotation(NewRotation);
-	}
-}
-
-void AMyPlayer::Multicast_SetLookRotation_Implementation(FRotator NewRotation)
-{
-	// Owning Client는 이미 로컬에서 회전하고 있으므로 업데이트 안 함
-	if (!IsLocallyControlled())
-	{
-		LookRotation = NewRotation;
-	}
 }
 
 // Called to bind functionality to input
@@ -94,6 +73,19 @@ void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void AMyPlayer::OnRep_LookPitch()
+{
+	if (SpringArm)
+	{
+		// 다른 클라이언트에서 보이는 서버 캐릭터의 복제본의 설정 변경
+		SpringArm->bUsePawnControlRotation = false;
+
+		FRotator CurrentRotation = SpringArm->GetRelativeRotation();
+		CurrentRotation.Pitch = LookPitch;
+		SpringArm->SetRelativeRotation(CurrentRotation);
+	}
 }
 
 void AMyPlayer::TryPickUp()
