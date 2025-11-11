@@ -31,6 +31,13 @@ void UInteractableComponent::BeginPlay()
 	
 }
 
+void UInteractableComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UInteractableComponent, HoldingOwner);
+}
+
 // Called every frame
 void UInteractableComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -39,24 +46,37 @@ void UInteractableComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	// ...
 }
 
-void UInteractableComponent::PickUp(USceneComponent* AttachTarget, FName AttachSocketName)
+void UInteractableComponent::OnRep_HoldingOwner()
+{
+	if (HoldingOwner)
+	{
+		AMyPlayer* MyPlayer = Cast<AMyPlayer>(HoldingOwner);
+		if (MyPlayer)
+		{
+			// 여기서 GetOwner() == 컴포넌트가 붙어있는 액터
+			GetOwner()->AttachToComponent(MyPlayer->HoldPosition, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		}
+	}
+	else
+	{
+		GetOwner()->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	}
+}
+
+void UInteractableComponent::PickUp()
+{
+	GetOwner()->SetOwner(HoldingOwner);
+	// 클라에서 이게 실행이 안되는데?
+	Server_PickUp();
+}
+
+void UInteractableComponent::Server_PickUp_Implementation()
 {
 	if (bIsPickedUp) return;
-
-	// Attach할 타겟 유효한지 확인
-	if (!AttachTarget)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InteractableComponent::PickUp - AttachTarget is null!"));
-		return;
-	}
-
+	
 	// Owner actor의 PrimitiveComponent 찾기
 	UPrimitiveComponent* PrimComp = GetOwnerPrimitiveComponent();
-	if (!PrimComp)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InteractableComponent::PickUp - No PrimitiveComponent found on owner!"));
-		return;
-	}
+	if (!PrimComp) return;
 
 	// 원래 상태 저장
 	// Drop 시 원래 상태로 되돌리기 위함
@@ -65,12 +85,10 @@ void UInteractableComponent::PickUp(USceneComponent* AttachTarget, FName AttachS
 
 	// pick up
 	PrimComp->SetSimulatePhysics(false);
-
-	AActor* Owner = GetOwner();
-	if (Owner)
+	
+	if (HoldingOwner->HasAuthority())
 	{
-		Owner->AttachToComponent(AttachTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-			AttachSocketName);
+		OnRep_HoldingOwner();
 	}
 
 	bIsPickedUp = true;
@@ -79,25 +97,29 @@ void UInteractableComponent::PickUp(USceneComponent* AttachTarget, FName AttachS
 
 void UInteractableComponent::Drop()
 {
+	Server_Drop();
+}
+
+void UInteractableComponent::Server_Drop_Implementation()
+{
 	if (!bIsPickedUp) return;
 
-	AActor* Owner = GetOwner();
-	if (Owner)
+	// detach
+	if (HoldingOwner->HasAuthority())
 	{
-		// detach
-		Owner->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-		UPrimitiveComponent* PrimComp = GetOwnerPrimitiveComponent();
-		if (PrimComp)
-		{
-			PrimComp->SetSimulatePhysics(bOriginalSimulatePhysics);
-			PrimComp->SetCollisionEnabled(OriginalCollisionType);
-		}
-
-		bIsPickedUp = false;
-
-		UE_LOG(LogTemp, Log, TEXT("InteractableComponent::Drop - %s dropped"), *Owner->GetName());
+		GetOwner()->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	}
+
+	UPrimitiveComponent* PrimComp = GetOwnerPrimitiveComponent();
+	if (PrimComp)
+	{
+		PrimComp->SetSimulatePhysics(bOriginalSimulatePhysics);
+		PrimComp->SetCollisionEnabled(OriginalCollisionType);
+	}
+
+	bIsPickedUp = false;
+
+	UE_LOG(LogTemp, Log, TEXT("InteractableComponent::Drop - %s dropped"), *GetOwner()->GetName());
 }
 
 UPrimitiveComponent* UInteractableComponent::GetOwnerPrimitiveComponent() const

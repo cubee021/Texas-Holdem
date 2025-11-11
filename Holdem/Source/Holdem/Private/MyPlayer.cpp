@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/InteractableComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "UI/MyPlayerWidget.h"
 
 // Sets default values
@@ -30,10 +31,11 @@ AMyPlayer::AMyPlayer()
 
 	// Default settings
 	SpringArm->SetRelativeLocation(FVector(0.000000,0.000000,40.000000));
-	SpringArm->TargetArmLength = 300.0f; 
+	SpringArm->TargetArmLength = 300.0f;
 	SpringArm->bUsePawnControlRotation = true;
-	
+
 	HoldingInteractable = nullptr;
+	LookRotation = FRotator::ZeroRotator;
 }
 
 // Called when the game starts or when spawned
@@ -52,11 +54,39 @@ void AMyPlayer::BeginPlay()
 	}
 }
 
+void AMyPlayer::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	// LookRotation은 Replicated 변수가 아니므로 여기에 추가하지 않음
+}
+
 // Called every frame
 void AMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// 서버에서만 실행: 각 플레이어의 ControlRotation을 Multicast
+	if (GetLocalRole() == ROLE_Authority && Controller)
+	{
+		FRotator CurrentRotation = GetControlRotation();
+		Multicast_SetLookRotation(CurrentRotation);
+	}
+	// 원격 플레이어: LookRotation으로 SpringArm 업데이트
+	else if (!IsLocallyControlled() && SpringArm)
+	{
+		FRotator NewRotation = SpringArm->GetComponentRotation();
+		NewRotation.Pitch = LookRotation.Pitch;
+		SpringArm->SetWorldRotation(NewRotation);
+	}
+}
+
+void AMyPlayer::Multicast_SetLookRotation_Implementation(FRotator NewRotation)
+{
+	// Owning Client는 이미 로컬에서 회전하고 있으므로 업데이트 안 함
+	if (!IsLocallyControlled())
+	{
+		LookRotation = NewRotation;
+	}
 }
 
 // Called to bind functionality to input
@@ -74,7 +104,8 @@ void AMyPlayer::TryPickUp()
 	UInteractableComponent* FoundInteractable = DetectInteractable();
 	if (FoundInteractable && HoldPosition)
 	{
-		FoundInteractable->PickUp(HoldPosition);
+		FoundInteractable->HoldingOwner = this;
+		FoundInteractable->PickUp();
 
 		// 현재 들고 있는 물체로 저장
 		HoldingInteractable = FoundInteractable;
@@ -87,6 +118,7 @@ void AMyPlayer::TryDrop()
 	{
 		HoldingInteractable->Drop();
 		
+		HoldingInteractable->HoldingOwner = nullptr;
 		HoldingInteractable = nullptr;
 	}
 }

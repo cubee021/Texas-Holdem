@@ -44,8 +44,14 @@ protected:
 protected:
 	UFUNCTION()
 	void Grab(const FInputActionValue& Value);
+
+	UFUNCTION(Server, Reliable)
+	void Server_Grab();
 	
 	UFUNCTION()
 	void Release(const FInputActionValue& Value);
+
+	UFUNCTION(Server, Reliable)
+	void Server_Release();
 	
 };

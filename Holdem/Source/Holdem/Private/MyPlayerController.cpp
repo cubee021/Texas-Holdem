@@ -59,6 +59,11 @@ void AMyPlayerController::Look(const FInputActionValue& Value)
 
 void AMyPlayerController::Grab(const FInputActionValue& Value)
 {
+	Server_Grab();
+}
+
+void AMyPlayerController::Server_Grab_Implementation()
+{
 	AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
 	if (MyPlayer)
 	{
@@ -67,6 +72,11 @@ void AMyPlayerController::Grab(const FInputActionValue& Value)
 }
 
 void AMyPlayerController::Release(const FInputActionValue& Value)
+{
+	Server_Release();
+}
+
+void AMyPlayerController::Server_Release_Implementation()
 {
 	AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
 	if (MyPlayer)

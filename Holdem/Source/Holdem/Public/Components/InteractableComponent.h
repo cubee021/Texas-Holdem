@@ -19,7 +19,8 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -38,6 +39,11 @@ protected:
 
 public:
 	// Interaction
+	UPROPERTY(ReplicatedUsing=OnRep_HoldingOwner)
+	AActor* HoldingOwner;
+
+	UFUNCTION()
+	void OnRep_HoldingOwner();
 	
 	// 현재 들고 있는 상태인지 확인
 	// BlueprintPure : 값만 반환, 상태 변경 없을 때 사용
@@ -46,11 +52,17 @@ public:
 	
 	// 물체 집어올림
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void PickUp(USceneComponent* AttachTarget, FName AttachSocketName = NAME_None);
+	void PickUp();
+
+	UFUNCTION(Server, Reliable)
+	void Server_PickUp();
 	
 	// 물체 놓음
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void Drop();
+
+	UFUNCTION(Server, Reliable)
+	void Server_Drop();
 
 protected:
 	// Owner Actor의 PrimitiveComponent 찾기

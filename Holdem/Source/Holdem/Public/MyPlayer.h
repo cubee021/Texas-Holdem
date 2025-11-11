@@ -18,6 +18,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 	// Called every frame
@@ -51,16 +52,22 @@ protected:
 	// Line Trace 최대 거리
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float InteractDistance = 1000.0f;
+	
+	// Camera Look Rotation (NOT replicated, updated via Multicast)
+	FRotator LookRotation;
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_SetLookRotation(FRotator NewRotation);
 
 public:
 	UPROPERTY()
 	class UInteractableComponent* HoldingInteractable;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void TryPickUp();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void TryDrop();
-	
+
 	UInteractableComponent* DetectInteractable();
 };
