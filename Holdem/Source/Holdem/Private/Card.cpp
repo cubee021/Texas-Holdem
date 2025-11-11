@@ -4,6 +4,7 @@
 #include "Card.h"
 
 #include "Components/InteractableComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ACard::ACard()
@@ -28,6 +29,10 @@ ACard::ACard()
 	// Replication
 	bReplicates = true;
 	SetReplicateMovement(true);
+
+	// Initial state
+	// 처음에는 덱 안에
+	CardState = ECardState::InDeck;
 }
 
 // Called when the game starts or when spawned
@@ -37,10 +42,53 @@ void ACard::BeginPlay()
 	
 }
 
+void ACard::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACard, CardData);
+	DOREPLIFETIME(ACard, CardState);
+}
+
 // Called every frame
 void ACard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ACard::SetCardData(const FCardData& InCardData)
+{
+	CardData = InCardData;
+
+	// 카드 정보에 맞는 머테리얼 적용
+	if (CardVisualTable)
+	{
+		FString RowName = FString::FromInt(CardData.GetCardID());
+		FCardVisualData* VisualData =
+			CardVisualTable->FindRow<FCardVisualData>(FName(*RowName), TEXT("CardVisual"));
+
+		if (VisualData)
+		{
+			if (VisualData->FrontMaterial.IsValid())
+			{
+				UMaterialInterface* FrontMaterial = VisualData->FrontMaterial.LoadSynchronous();
+				if (FrontMaterial)
+				{
+					Mesh->SetMaterial(0, FrontMaterial);
+				}
+			}
+		}
+	}
+}
+
+void ACard::ResetToOriginalPosition()
+{
+	SetActorLocation(OriginalPosition);
+	SetActorRotation(OriginalRotation);
+
+	CardState = ECardState::OnTable;
+	
+	UE_LOG(LogTemp, Log, TEXT("Card %d reset to original position"), CardData.GetCardID());
 }
 
