@@ -21,7 +21,10 @@ protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
-protected:
+public:
+	// PreFlop : 플레이어에게 카드 배분
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void PreFlop();
 	
 	
 };

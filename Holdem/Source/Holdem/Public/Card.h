@@ -41,7 +41,7 @@ enum class ECardState : uint8
 {
 	InDeck		UMETA(DisplayName = "In Deck"), // 덱에 있음 (스폰 안됨)
 	OnTable		UMETA(DisplayName = "On Table"), // 공개 카드
-	Holding		UMETA(DisplayName = "Holding"), // 플레이어 소유 카드
+	InHand		UMETA(DisplayName = "In Hand"), // 플레이어 소유 카드
 	Displaced	UMETA(DisplayName = "Displaced"), // 원래 위치에서 벗어남 (임시)
 	Folded		UMETA(DisplayName = "Folded") // 폴드됨
 };

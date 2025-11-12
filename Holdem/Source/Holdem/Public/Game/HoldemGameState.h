@@ -10,6 +10,19 @@
 /**
  * 
  */
+
+// Game Phase
+UENUM(BlueprintType)
+enum class EHoldemPhase : uint8
+{
+	Waiting		UMETA(DisplayName = "Waiting"), // 게임 시작 대기
+	PreFlop		UMETA(DisplayName = "Preflop"), // 플레이어 2장 배분 + 첫 베팅
+	Flop		UMETA(DisplayName = "Flop"),    // 테이블 3장 오픈 + 베팅
+	Turn		UMETA(DisplayName = "Turn"),    // 테이블 4번째 카드 오픈 + 베팅
+	River		UMETA(DisplayName = "River"),   // 테이블 5번째 카드 오픈 + 베팅
+	Showdown	UMETA(DisplayName = "Showdown") // 승자 결정
+};
+
 UCLASS()
 class HOLDEM_API AHoldemGameState : public AGameStateBase
 {
@@ -49,14 +62,45 @@ public:
 	// 덱 셔플
 	UFUNCTION(BlueprintCallable, Category = "Deck")
 	void ShuffleDeck();
-	// 카드 맵에 스폰 (데이터 -> 액터)
+	// 덱에서 카드 뽑아서 스폰
 	UFUNCTION(BlueprintCallable, Category = "Deck")
-	ACard* SpawnCard(const FCardData& Data, FVector Location, FRotator Rotation);
+	ACard* DrawAndSpawnCard(FVector Location, FRotator Rotation);
 	// 카드 스폰- 테스트용
-	UFUNCTION(BlueprintCallable, Category = "Deck")
-	void SpawnTest();
+	//UFUNCTION(BlueprintCallable, Category = "Deck")
+	//void SpawnTest();
+
+protected:
+	// 카드 맵에 스폰 (데이터 -> 액터)
+	ACard* SpawnCard(const FCardData& Data, FVector Location, FRotator Rotation);
+
+public:
 	// 모든 카드 원위치
 	UFUNCTION(BlueprintCallable, Category = "Deck")
 	void ResetAllCardsLocation();
+
+public:
+	// Game Phase
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	EHoldemPhase CurrentPhase;
+
+	// PreFlop - 플레이어당 2장씩 카드 배분
+	UFUNCTION(BlueprintCallable, Category = "PlayerCardSettings")
+	void DealCardsToPlayers();
 	
+public:
+	// Player Card Settings
+	// 플레이어 앞 배치 거리
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCardSettings")
+	float SpawnDistanceFromPlayer = 90.f;
+	// 두 카드 간 간격
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCardSettings")
+	float CardSpacing = 25.f;
+	// 테이블 높이
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCardSettings")
+	float TableHeight = 90.f;
+
+protected:
+	// 플레이어 앞 카드 배치 위치
+	void GetPlayerCardSpawnLocation(APlayerState* PlayerState,
+		FVector& OutFirstCardLoc, FVector& OutSecondCardLoc);
 };

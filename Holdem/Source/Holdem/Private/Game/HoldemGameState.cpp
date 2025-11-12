@@ -2,11 +2,15 @@
 
 
 #include "Game/HoldemGameState.h"
+
+#include "Game/HoldemPlayerState.h"
+#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 AHoldemGameState::AHoldemGameState()
 {
 	MaxPlayers = 4;
+	CurrentPhase = EHoldemPhase::Waiting;
 }
 
 void AHoldemGameState::BeginPlay()
@@ -19,6 +23,7 @@ void AHoldemGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AHoldemGameState, SpawnedCards);
+	DOREPLIFETIME(AHoldemGameState, CurrentPhase);
 }
 
 void AHoldemGameState::GenerateDeck()
@@ -84,6 +89,20 @@ ACard* AHoldemGameState::SpawnCard(const FCardData& Data, FVector Location, FRot
 	return NewCard;
 }
 
+ACard* AHoldemGameState::DrawAndSpawnCard(FVector Location, FRotator Rotation)
+{
+	if (!HasAuthority()) return nullptr;
+	if (Deck.Num() == 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Deck empty"));
+		return nullptr;
+	}
+
+	FCardData DrawCard = Deck.Pop();
+	// 여기 이렇게 구현한 이유?
+	return SpawnCard(DrawCard, Location, Rotation);
+}
+/*
 void AHoldemGameState::SpawnTest()
 {
 	if (!HasAuthority()) return;
@@ -101,10 +120,68 @@ void AHoldemGameState::SpawnTest()
 			*UEnum::GetValueAsString(DrawCard.Suit), *UEnum::GetValueAsString(DrawCard.Rank));
 	
 }
-
+*/
 void AHoldemGameState::ResetAllCardsLocation()
 {
 	if (!HasAuthority()) return;
 
 	//for (ACard)
+}
+
+void AHoldemGameState::DealCardsToPlayers()
+{
+	if (!HasAuthority()) return;
+
+	// 모든 플레이어에게 카드 배분
+	for (APlayerState* PlayerState : PlayerArray)
+	{
+		AHoldemPlayerState* PS = Cast<AHoldemPlayerState>(PlayerState);
+		if (PS)
+		{
+			PS->ClearHand();
+
+			FVector FirstCardLoc, SecondCardLoc;
+			GetPlayerCardSpawnLocation(PS,FirstCardLoc, SecondCardLoc);
+
+			// 플레이어가 보기에 카드가 세로로 놓이도록
+			APawn* Player = PS->GetPawn();
+			FRotator CardRotation = FRotationMatrix::MakeFromYZ(
+				Player->GetActorForwardVector(), FVector::UpVector).Rotator();
+
+			ACard* FirstCard = DrawAndSpawnCard(FirstCardLoc, CardRotation);
+			if (FirstCard)
+			{
+				// 덱에서 뽑은 카드 플레이어에게 추가
+				PS->AddCard(FirstCard);
+				FirstCard->CardState = ECardState::InHand;
+			}
+
+			ACard* SecondCard = DrawAndSpawnCard(SecondCardLoc, CardRotation);
+			if (SecondCard)
+			{
+				// 덱에서 뽑은 카드 플레이어에게 추가
+				PS->AddCard(SecondCard);
+				SecondCard->CardState = ECardState::InHand;
+			}
+		}
+	}
+}
+
+void AHoldemGameState::GetPlayerCardSpawnLocation(APlayerState* PlayerState, FVector& OutFirstCardLoc,
+                                                  FVector& OutSecondCardLoc)
+{
+	if (!PlayerState) return;
+
+	APawn* Player = PlayerState->GetPawn();
+	FVector PlayerLocation = Player->GetActorLocation();
+
+	FVector BaseLocation = PlayerLocation +
+		(Player->GetActorForwardVector() * SpawnDistanceFromPlayer);
+	BaseLocation.Z = TableHeight;
+
+	// BaseLocation 기준으로 좌우에 나란히 배치
+	float HalfSpacing = CardSpacing / 2.f;
+	
+	OutFirstCardLoc = BaseLocation - (Player->GetActorRightVector() * HalfSpacing);
+	OutSecondCardLoc = BaseLocation + (Player->GetActorRightVector() * HalfSpacing);
 }

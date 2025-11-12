@@ -6,6 +6,7 @@
 #include "MyPlayer.h"
 #include "MyPlayerController.h"
 #include "Game/HoldemGameState.h"
+#include "Game/HoldemPlayerState.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -14,6 +15,7 @@ AHoldemGameMode::AHoldemGameMode()
 	DefaultPawnClass = AMyPlayer::StaticClass();
 	PlayerControllerClass = AMyPlayerController::StaticClass();
 	GameStateClass = AHoldemGameState::StaticClass();
+	PlayerStateClass = AHoldemPlayerState::StaticClass();
 }
 
 void AHoldemGameMode::PostLogin(APlayerController* NewPlayer)
@@ -27,6 +29,11 @@ void AHoldemGameMode::PostLogin(APlayerController* NewPlayer)
 		int32 PlayerCount = GS->GetPlayerCount();
 		UE_LOG(LogTemp, Log, TEXT("Player connected! Total players: %d/%d"), PlayerCount, GS->MaxPlayers);
 		UE_LOG(LogTemp, Log, TEXT("Player Name: %s"), *NewPlayer->GetName());
+
+		if (PlayerCount >= 2)
+		{
+			PreFlop();
+		}
 	}
 }
 
@@ -58,4 +65,20 @@ AActor* AHoldemGameMode::ChoosePlayerStart_Implementation(AController* Player)
 
 	UE_LOG(LogTemp, Warning, TEXT("Seat_%d not found!"), PlayerIdx);
 	return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+void AHoldemGameMode::PreFlop()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (GS)
+	{
+		GS->CurrentPhase = EHoldemPhase::PreFlop;
+
+		GS->GenerateDeck();
+		GS->ShuffleDeck();
+
+		GS->DealCardsToPlayers();
+
+		UE_LOG(LogTemp, Warning, TEXT("PreFlop"));
+	}
 }
