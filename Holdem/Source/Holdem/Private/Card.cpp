@@ -57,10 +57,25 @@ void ACard::Tick(float DeltaTime)
 
 }
 
+void ACard::OnRep_CardData()
+{
+	UpdateCardVisual();
+}
+
 void ACard::SetCardData(const FCardData& InCardData)
 {
 	CardData = InCardData;
 
+	// 서버에서만 직접 Visual 업데이트
+	// 클라이언트는 OnRep_CardData에서 자동으로 업데이트됨
+	if (HasAuthority())
+	{
+		UpdateCardVisual();
+	}
+}
+
+void ACard::UpdateCardVisual()
+{
 	// 카드 정보에 맞는 머테리얼 적용
 	if (CardVisualTable)
 	{
@@ -70,13 +85,9 @@ void ACard::SetCardData(const FCardData& InCardData)
 
 		if (VisualData)
 		{
-			if (VisualData->FrontMaterial.IsValid())
+			if (VisualData->CardMesh)
 			{
-				UMaterialInterface* FrontMaterial = VisualData->FrontMaterial.LoadSynchronous();
-				if (FrontMaterial)
-				{
-					Mesh->SetMaterial(0, FrontMaterial);
-				}
+				Mesh->SetStaticMesh(VisualData->CardMesh);
 			}
 		}
 	}

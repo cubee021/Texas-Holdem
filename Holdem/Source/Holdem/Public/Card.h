@@ -82,10 +82,7 @@ struct FCardVisualData : public FTableRowBase
 	GENERATED_BODY()
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSoftObjectPtr<UMaterialInterface> FrontMaterial;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSoftObjectPtr<UMaterialInterface> BackMaterial;
+	class UStaticMesh* CardMesh;
 };
 
 UCLASS()
@@ -116,8 +113,12 @@ public:
 
 public:
 	// Card Data
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Card")
+	UPROPERTY(ReplicatedUsing=OnRep_CardData, BlueprintReadOnly, Category = "Card")
 	FCardData CardData;
+
+	UFUNCTION()
+	void OnRep_CardData();
+	
 	// Card Material
 	UPROPERTY(EditDefaultsOnly, Category = "Card")
 	class UDataTable* CardVisualTable;
@@ -133,6 +134,8 @@ public:
 	// 카드 설정
 	UFUNCTION(BlueprintCallable, Category = "Card")
 	void SetCardData(const FCardData& InCardData);
+	// 카드 머테리얼 설정
+	void UpdateCardVisual();
 	// 카드 원위치로
 	UFUNCTION(BlueprintCallable, Category = "Card")
 	void ResetToOriginalPosition();
