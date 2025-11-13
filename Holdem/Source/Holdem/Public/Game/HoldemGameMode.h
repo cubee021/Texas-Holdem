@@ -22,9 +22,18 @@ protected:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 public:
-	// PreFlop : 플레이어에게 카드 배분
+	// PreFlop - 플레이어당 2장씩 카드 배분
 	UFUNCTION(BlueprintCallable, Category = "GamePhase")
-	void PreFlop();
-	
-	
+	void StartPreFlop();
+	// Flop - 테이블 중앙에 3장 배분
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void StartFlop();
+	// Turn - 테이블 중앙에 4번째 카드 배분
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void StartTurn();
+	// River - 테이블 중앙에 5번째 카드 배분
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void StartRiver();
+
+	//Showdown 구현은 추후에
 };

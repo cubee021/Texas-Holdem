@@ -24,6 +24,7 @@ void AHoldemGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(AHoldemGameState, SpawnedCards);
 	DOREPLIFETIME(AHoldemGameState, CurrentPhase);
+	DOREPLIFETIME(AHoldemGameState, CommunityCards);
 }
 
 void AHoldemGameState::GenerateDeck()
@@ -128,7 +129,7 @@ void AHoldemGameState::ResetAllCardsLocation()
 	//for (ACard)
 }
 
-void AHoldemGameState::DealCardsToPlayers()
+void AHoldemGameState::DealPreflopToPlayers()
 {
 	if (!HasAuthority()) return;
 
@@ -167,6 +168,30 @@ void AHoldemGameState::DealCardsToPlayers()
 	}
 }
 
+void AHoldemGameState::DealFlopCards()
+{
+	if (!HasAuthority()) return;
+
+	for (int32 i=0; i<3; i++)
+	{
+		SpawnCommunityCard(i);
+	}
+}
+
+void AHoldemGameState::DealTurnCard()
+{
+	if (!HasAuthority()) return;
+
+	SpawnCommunityCard(3);
+}
+
+void AHoldemGameState::DealRiverCard()
+{
+	if (!HasAuthority()) return;
+
+	SpawnCommunityCard(4);
+}
+
 void AHoldemGameState::GetPlayerCardSpawnLocation(APlayerState* PlayerState, FVector& OutFirstCardLoc,
                                                   FVector& OutSecondCardLoc)
 {
@@ -184,4 +209,17 @@ void AHoldemGameState::GetPlayerCardSpawnLocation(APlayerState* PlayerState, FVe
 	
 	OutFirstCardLoc = BaseLocation - (Player->GetActorRightVector() * HalfSpacing);
 	OutSecondCardLoc = BaseLocation + (Player->GetActorRightVector() * HalfSpacing);
+}
+
+void AHoldemGameState::SpawnCommunityCard(int32 CardIdx)
+{
+	float Offset = (CardIdx - 2) * CardSpacing;
+	FVector SpawnLocation = TableLocation + FVector(Offset, 0, 0);
+	
+	ACard* NewCard = DrawAndSpawnCard(SpawnLocation, FRotator::ZeroRotator);
+	if (NewCard)
+	{
+		CommunityCards.Add(NewCard);
+		NewCard->CardState = ECardState::OnTable;
+	}
 }

@@ -84,23 +84,47 @@ public:
 	EHoldemPhase CurrentPhase;
 
 	// PreFlop - 플레이어당 2장씩 카드 배분
-	UFUNCTION(BlueprintCallable, Category = "PlayerCardSettings")
-	void DealCardsToPlayers();
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void DealPreflopToPlayers();
+	// Flop - 테이블 중앙에 3장 배분
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void DealFlopCards();
+	// Turn - 테이블 중앙에 4번째 카드 배분
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void DealTurnCard();
+	// River - 테이블 중앙에 5번째 카드 배분
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void DealRiverCard();
 	
 public:
-	// Player Card Settings
+	// Player Cards
 	// 플레이어 앞 배치 거리
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerCardSettings")
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
 	float SpawnDistanceFromPlayer = 90.f;
 	// 두 카드 간 간격
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerCardSettings")
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
 	float CardSpacing = 25.f;
 	// 테이블 높이
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerCardSettings")
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
 	float TableHeight = 90.f;
 
 protected:
 	// 플레이어 앞 카드 배치 위치
 	void GetPlayerCardSpawnLocation(APlayerState* PlayerState,
 		FVector& OutFirstCardLoc, FVector& OutSecondCardLoc);
+
+public:
+	// Community Cards
+	// 공개 카드
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "CommunityCards")
+	TArray<ACard*> CommunityCards;
+	
+	// 테이블 중앙
+	UPROPERTY(EditDefaultsOnly, Category = "CommunityCards")
+	FVector TableLocation =
+		FVector(250.000000,20.000000,90.000000);
+	
+protected:
+	// 카드 테이블에 배치
+	void SpawnCommunityCard(int32 CardIdx);
 };

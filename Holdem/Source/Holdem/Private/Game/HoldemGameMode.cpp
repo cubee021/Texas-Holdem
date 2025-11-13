@@ -32,7 +32,8 @@ void AHoldemGameMode::PostLogin(APlayerController* NewPlayer)
 
 		if (PlayerCount >= 2)
 		{
-			PreFlop();
+			StartPreFlop();
+			StartFlop();
 		}
 	}
 }
@@ -67,7 +68,7 @@ AActor* AHoldemGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
-void AHoldemGameMode::PreFlop()
+void AHoldemGameMode::StartPreFlop()
 {
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
 	if (GS)
@@ -77,8 +78,41 @@ void AHoldemGameMode::PreFlop()
 		GS->GenerateDeck();
 		GS->ShuffleDeck();
 
-		GS->DealCardsToPlayers();
+		GS->DealPreflopToPlayers();
 
 		UE_LOG(LogTemp, Warning, TEXT("PreFlop"));
+	}
+}
+
+void AHoldemGameMode::StartFlop()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (GS)
+	{
+		GS->DealFlopCards();
+
+		UE_LOG(LogTemp, Warning, TEXT("Flop"));
+	}
+}
+
+void AHoldemGameMode::StartTurn()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (GS)
+	{
+		GS->DealTurnCard();
+
+		UE_LOG(LogTemp, Warning, TEXT("Turn"));
+	}
+}
+
+void AHoldemGameMode::StartRiver()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (GS)
+	{
+		GS->DealRiverCard();
+
+		UE_LOG(LogTemp, Warning, TEXT("River"));
 	}
 }
