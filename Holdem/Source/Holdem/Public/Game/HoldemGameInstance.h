@@ -8,7 +8,8 @@
 #include "HoldemGameInstance.generated.h"
 
 // 세션 검색 완료시 호출되는 함수 등록하는 Delegate
-DECLARE_DELEGATE_TwoParams(FFindComplete, int32, FString);
+DECLARE_DELEGATE_FourParams(FFindComplete, int32 /*SessionIdx*/,
+	FString /*SessionName*/, int32 /*CurrPlayers*/, int32 /*MaxPlayers*/);
 
 /**
  * 

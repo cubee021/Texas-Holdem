@@ -67,5 +67,6 @@ public:
 	void OnClicked_Update();
 
 	UFUNCTION()
-	void OnFindComplete(int Idx, FString SessionName);
+	void OnFindComplete(int Idx, FString SessionName,
+		int32 CurrPlayers, int32 MaxPlayers);
 };

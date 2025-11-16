@@ -112,9 +112,20 @@ void UHoldemGameInstance::OnFindSessionComplete(bool bWasSuccessful)
 			results[i].Session.SessionSettings.Get(FName(TEXT("DP_NAME")), displayName);
 			// displayName 을 UTF8 string 으로 변환
 			displayName = StringBase64Decode(displayName);
+
+			// 플레이어 수
+			int32 MaxPlayers = results[i].Session.SessionSettings.NumPublicConnections;
+			// NumOpenPublicConnections가 스팀에서만 정상 출력된다는 말이 있음
+			// [https://jeongsupark.tistory.com/50]
+			int32 OpenSlots = results[i].Session.NumOpenPublicConnections;
+			int32 CurrentPlayers = MaxPlayers - OpenSlots;
+
+			UE_LOG(LogTemp, Warning, TEXT("세션 %d - MaxPlayers: %d, OpenSlots: %d"),
+					 i, MaxPlayers, OpenSlots);
+			
 			UE_LOG(LogTemp, Warning, TEXT("세션 - %i, 이름 : %s"), i, *displayName);
 			// onFindComplete 에 들어있는 함수 실행
-			onFindComplete.ExecuteIfBound(i, displayName);
+			onFindComplete.ExecuteIfBound(i, displayName, CurrentPlayers, MaxPlayers);
 		}
 	}
 	else
@@ -122,7 +133,7 @@ void UHoldemGameInstance::OnFindSessionComplete(bool bWasSuccessful)
 		UE_LOG(LogTemp, Warning, TEXT("세션 조회 실패"));
 	}
 
-	onFindComplete.ExecuteIfBound(-1, FString());
+	onFindComplete.ExecuteIfBound(-1, FString(), 0, 0);
 }
 
 void UHoldemGameInstance::JoinOtherSession(int32 sessionIdx)

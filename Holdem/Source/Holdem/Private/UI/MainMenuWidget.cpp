@@ -103,7 +103,8 @@ void UMainMenuWidget::OnClicked_Update()
 	GI->FindOtherSession();
 }
 
-void UMainMenuWidget::OnFindComplete(int Idx, FString SessionName)
+void UMainMenuWidget::OnFindComplete(int Idx, FString SessionName,
+	int32 CurrPlayers, int32 MaxPlayers)
 {
 	if (Idx == -1)
 	{
@@ -119,6 +120,7 @@ void UMainMenuWidget::OnFindComplete(int Idx, FString SessionName)
 		{
 			ScrlBox_SessionList->AddChild(NewSession);
 			NewSession->SetSessionName(Idx, SessionName);
+			NewSession->SetSessionPlayersInfo(CurrPlayers, MaxPlayers);
 		}
 	}
 }
