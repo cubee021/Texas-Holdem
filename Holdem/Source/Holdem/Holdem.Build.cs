@@ -8,7 +8,13 @@ public class Holdem : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG" });
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", "CoreUObject", "Engine", 
+			"InputCore", "EnhancedInput", 
+			"UMG",
+			"OnlineSubsystem", "OnlineSubsystemSteam", "OnlineSubsystemUtils"
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
