@@ -35,6 +35,6 @@ public:
 	// 세션 목록 순번
 	int32 SessionIdx;
 	
-	void SetSessionName(int32 Idx);
+	void SetSessionName(int32 Idx, FString SessionName);
 	void SetSessionPlayersInfo(int32 CurrPlayers, int32 MaxPlayers);
 };

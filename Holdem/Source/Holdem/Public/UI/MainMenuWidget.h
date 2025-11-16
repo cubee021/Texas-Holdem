@@ -50,12 +50,22 @@ public:
 	void OnClicked_Join();
 
 public:
-	//2 : JoinCanvas
+	// 2 : JoinCanvas
 	UPROPERTY(meta = (BindWidget))
 	class UScrollBox* ScrlBox_SessionList;
+	
 	UPROPERTY(meta=(BindWidget))
 	class UButton* Btn_Update;
+	
 	UPROPERTY(meta=(BindWidget))
 	class UTextBlock* Txt_Update;
-	
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UUserWidget> SessionWidget;
+
+	UFUNCTION()
+	void OnClicked_Update();
+
+	UFUNCTION()
+	void OnFindComplete(int Idx, FString SessionName);
 };

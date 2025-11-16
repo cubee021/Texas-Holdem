@@ -5,6 +5,7 @@
 
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "Game/HoldemGameInstance.h"
 
 void USessionWidget::NativeConstruct()
 {
@@ -16,17 +17,16 @@ void USessionWidget::NativeConstruct()
 
 void USessionWidget::OnClickJoinSession()
 {
-	//HoldemGameInstance* GI = Cast<HoldemGameInstance>(GetGameInstance());
-	// sessionIdx 번째 세션에 참여
-	//GI->JoinOtherSession(sessionIdx);
+	UHoldemGameInstance* GI = Cast<UHoldemGameInstance>(GetGameInstance());
+	// SessionIdx 번째 세션에 참여
+	GI->JoinOtherSession(SessionIdx);
 }
 
-void USessionWidget::SetSessionName(int32 Idx)
+void USessionWidget::SetSessionName(int32 Idx, FString SessionName)
 {
-	// 업데이트해도 인덱스 동일한지 확인할 것
 	SessionIdx = Idx;
 	
-	Txt_SessionName->SetText(FText::FromString(FString::Printf(TEXT("%d"), Idx)));
+	Txt_SessionName->SetText(FText::FromString(SessionName));
 }
 
 void USessionWidget::SetSessionPlayersInfo(int32 CurrPlayers, int32 MaxPlayers)
