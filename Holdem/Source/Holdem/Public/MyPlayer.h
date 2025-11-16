@@ -19,7 +19,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-
+	virtual void PossessedBy(AController* NewController) override;
+	
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -38,6 +39,9 @@ public:
 	// 들고 있는 물체를 고정시킬 위치
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USceneComponent* HoldPosition;
+	// 플레이어 이름 표시
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UWidgetComponent* NameTag;
 
 public:
 	// UI
@@ -73,4 +77,11 @@ public:
 	void TryDrop();
 
 	UInteractableComponent* DetectInteractable();
+
+protected:
+	// NameTag
+	void BillboardNameTag();
+
+	UFUNCTION(Client, Reliable)
+	void Client_OnPossess();
 };

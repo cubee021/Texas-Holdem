@@ -3,12 +3,17 @@
 
 #include "MyPlayer.h"
 
+#include "MyPlayerSaveGame.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InteractableComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "UI/MyPlayerWidget.h"
+#include "UI/NameTagWidget.h"
 
 // Sets default values
 AMyPlayer::AMyPlayer()
@@ -29,6 +34,10 @@ AMyPlayer::AMyPlayer()
 	HoldPosition->SetupAttachment(Camera);
 	HoldPosition->SetRelativeLocation(FVector(100.f, 0.f, 0.f));
 
+	// NameTag 생성
+	NameTag = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTag"));
+	NameTag->SetupAttachment(GetRootComponent());
+	
 	// Default settings
 	SpringArm->SetRelativeLocation(FVector(0.000000,0.000000,40.000000));
 	SpringArm->TargetArmLength = 300.0f;
@@ -52,6 +61,18 @@ void AMyPlayer::BeginPlay()
 			PlayerWidget->AddToViewport();
 		}
 	}
+	
+	// NameTag 업데이트
+	UNameTagWidget* Tag = Cast<UNameTagWidget>(NameTag->GetWidget());
+	if (Tag)
+	{
+		UMyPlayerSaveGame* SG = Cast<UMyPlayerSaveGame>(
+		UGameplayStatics::LoadGameFromSlot(TEXT("PlayerDataSlot"), 0));
+
+		if (!SG) return;
+		
+		Tag->SetName(SG->PlayerName);
+	}
 }
 
 void AMyPlayer::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -61,11 +82,19 @@ void AMyPlayer::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutL
 	DOREPLIFETIME(AMyPlayer, LookPitch);
 }
 
+void AMyPlayer::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	Client_OnPossess();
+}
+
 // Called every frame
 void AMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	BillboardNameTag();
 }
 
 // Called to bind functionality to input
@@ -144,5 +173,20 @@ UInteractableComponent* AMyPlayer::DetectInteractable()
 	}
 
 	return nullptr;
+}
+
+void AMyPlayer::BillboardNameTag()
+{
+	// 내가 컨트롤하고 있는 카메라를 가져오자.
+	AActor* cam = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	// 카메라의 앞 방향 (반대), 윗 방향을 이용해서 Rotator 를 구하자.
+	FRotator rot = UKismetMathLibrary::MakeRotFromXZ(-cam->GetActorForwardVector(), cam->GetActorUpVector());
+	// 구한 Rotator 를 comHP 에 설정
+	NameTag->SetWorldRotation(rot);
+}
+
+void AMyPlayer::Client_OnPossess_Implementation()
+{
+	NameTag->SetVisibility(false);
 }
 
