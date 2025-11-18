@@ -67,4 +67,14 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void Server_RotateHoldingItem(float Value);
+
+protected:
+	// Item
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* ItemAction;
+	// 위젯 on/off
+	bool bItemWidgetOn = false;
+	
+	UFUNCTION()
+	void ShowItemWidget(const FInputActionValue& Value);
 };

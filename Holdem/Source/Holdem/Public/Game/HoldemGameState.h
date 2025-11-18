@@ -42,7 +42,7 @@ public:
 
 	// 최대 플레이어 수
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 MaxPlayers = 4;
+	int32 MaxPlayers = 6;
 
 public:
 	// Deck Management
@@ -65,9 +65,6 @@ public:
 	// 덱에서 카드 뽑아서 스폰
 	UFUNCTION(BlueprintCallable, Category = "Deck")
 	ACard* DrawAndSpawnCard(FVector Location, FRotator Rotation);
-	// 카드 스폰- 테스트용
-	//UFUNCTION(BlueprintCallable, Category = "Deck")
-	//void SpawnTest();
 
 protected:
 	// 카드 맵에 스폰 (데이터 -> 액터)
@@ -82,6 +79,13 @@ public:
 	// Game Phase
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	EHoldemPhase CurrentPhase;
+
+	// Waiting - 타이머
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GamePhase")
+	float WaitingTimeRemaining;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GamePhase")
+	float WaitingDuration = 10.f;
 
 	// PreFlop - 플레이어당 2장씩 카드 배분
 	UFUNCTION(BlueprintCallable, Category = "GamePhase")

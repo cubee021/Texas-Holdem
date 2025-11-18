@@ -68,6 +68,54 @@ AActor* AHoldemGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
+void AHoldemGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	StartWaiting();
+}
+
+void AHoldemGameMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+void AHoldemGameMode::StartWaiting()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (GS)
+	{
+		GS->CurrentPhase = EHoldemPhase::Waiting;
+		GS->WaitingTimeRemaining = GS->WaitingDuration;
+
+		GetWorldTimerManager().SetTimer(WaitingTimerHandle, this,
+			&AHoldemGameMode::UpdateWaitingTimer, 1.f, true);
+	}
+}
+
+void AHoldemGameMode::UpdateWaitingTimer()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (GS)
+	{
+		GS->WaitingTimeRemaining -= 1.f;
+	}
+
+	if (GS->WaitingTimeRemaining <= 0.f)
+	{
+		if(GS->GetPlayerCount() >= 2)
+		{
+			// 타이머 업데이트 되는지 확인하고
+			// 다음 함수 작성
+		}
+		else
+		{
+			// 한 명밖에 없으면 다시 대기
+			StartWaiting();
+		}
+	}
+}
+
 void AHoldemGameMode::StartPreFlop()
 {
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();

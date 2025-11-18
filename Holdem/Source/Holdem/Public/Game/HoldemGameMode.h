@@ -21,7 +21,17 @@ protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	
 public:
+	// Waiting - 10초 동안 플레이어 접속 대기
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void StartWaiting();
+
+	FTimerHandle WaitingTimerHandle;
+	void UpdateWaitingTimer();
+	
 	// PreFlop - 플레이어당 2장씩 카드 배분
 	UFUNCTION(BlueprintCallable, Category = "GamePhase")
 	void StartPreFlop();

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "Item.h"
 #include "HoldemPlayerState.generated.h"
 
 /**
@@ -17,15 +18,22 @@ class HOLDEM_API AHoldemPlayerState : public APlayerState
 public:
 	AHoldemPlayerState();
 
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 	// 플레이어가 소유한 카드
 	UPROPERTY(BlueprintReadOnly, Category = "Hand")
-	TArray<ACard*> HandCards;
+	TArray<class ACard*> HandCards;
 
 	// 카드 추가
 	UFUNCTION(BlueprintCallable, Category = "Hand")
-	void AddCard(ACard* Card);
+	void AddCard(class ACard* Card);
 	// 패 초기화
 	UFUNCTION(BlueprintCallable, Category = "Hand")
 	void ClearHand();
+
+public:
+	// Waiting Phase에서 선택한 아이템
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Item")
+	EItemType SelectedItem;
 };

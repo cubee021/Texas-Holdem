@@ -25,6 +25,7 @@ void AHoldemGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AHoldemGameState, SpawnedCards);
 	DOREPLIFETIME(AHoldemGameState, CurrentPhase);
 	DOREPLIFETIME(AHoldemGameState, CommunityCards);
+	DOREPLIFETIME(AHoldemGameState, WaitingTimeRemaining);
 }
 
 void AHoldemGameState::GenerateDeck()
@@ -103,25 +104,7 @@ ACard* AHoldemGameState::DrawAndSpawnCard(FVector Location, FRotator Rotation)
 	// 여기 이렇게 구현한 이유?
 	return SpawnCard(DrawCard, Location, Rotation);
 }
-/*
-void AHoldemGameState::SpawnTest()
-{
-	if (!HasAuthority()) return;
 
-	GenerateDeck();
-	ShuffleDeck();
-
-	FVector TableCenter = FVector(220.000000,-40.000000,60.000000);
-
-	FCardData DrawCard = Deck.Pop();
-	
-	SpawnCard(DrawCard, TableCenter, FRotator::ZeroRotator);
-
-	UE_LOG(LogTemp, Warning, TEXT("New Card : %s, %s"),
-			*UEnum::GetValueAsString(DrawCard.Suit), *UEnum::GetValueAsString(DrawCard.Rank));
-	
-}
-*/
 void AHoldemGameState::ResetAllCardsLocation()
 {
 	if (!HasAuthority()) return;

@@ -35,6 +35,8 @@ void AMyPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AMyPlayerController::Release);
 
 		EnhancedInputComponent->BindAction(RotateAction, ETriggerEvent::Triggered, this, &AMyPlayerController::RotateHoldingItem);
+
+		EnhancedInputComponent->BindAction(RotateAction, ETriggerEvent::Started, this, &AMyPlayerController::ShowItemWidget);
 	}
 }
 
@@ -87,6 +89,19 @@ void AMyPlayerController::RotateHoldingItem(const FInputActionValue& Value)
 	if (FMath::Abs(v) > 0.01f)
 	{
 		Server_RotateHoldingItem(v * RotationSpeed);
+	}
+}
+
+void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)
+{
+	if (!bItemWidgetOn)
+	{
+		//AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
+		//if (MyPlayer)
+	}
+	else
+	{
+		
 	}
 }
 
