@@ -7,6 +7,8 @@
 #include "InputActionValue.h"
 #include "MyPlayer.h"
 #include "Components/InteractableComponent.h"
+#include "Game/HoldemGameState.h"
+#include "UI/BarWidget.h"
 
 void AMyPlayerController::BeginPlay()
 {
@@ -36,7 +38,7 @@ void AMyPlayerController::SetupInputComponent()
 
 		EnhancedInputComponent->BindAction(RotateAction, ETriggerEvent::Triggered, this, &AMyPlayerController::RotateHoldingItem);
 
-		EnhancedInputComponent->BindAction(RotateAction, ETriggerEvent::Started, this, &AMyPlayerController::ShowItemWidget);
+		EnhancedInputComponent->BindAction(ItemAction, ETriggerEvent::Started, this, &AMyPlayerController::ShowItemWidget);
 	}
 }
 
@@ -94,14 +96,30 @@ void AMyPlayerController::RotateHoldingItem(const FInputActionValue& Value)
 
 void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)
 {
+	// Waiting phase 일 때만 아이템 위젯 표시
+	AHoldemGameState* GS = Cast<AHoldemGameState>(GetWorld()->GetGameState());
+	if (GS && GS->CurrentPhase != EHoldemPhase::Waiting) return;
+	
+	AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
+	if (!MyPlayer) return;
+	
 	if (!bItemWidgetOn)
 	{
-		//AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
-		//if (MyPlayer)
+		MyPlayer->BarWidget->AddToViewport();
+		bItemWidgetOn = true;
+
+		// 마우스 커서 켜기
+		GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+		//SetInputMode(FInputModeUIOnly());
 	}
 	else
 	{
-		
+		MyPlayer->BarWidget->RemoveFromParent();
+		bItemWidgetOn = false;
+
+		// 마우스 커서 끄기
+		GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
+		//SetInputMode(FInputModeGameOnly());
 	}
 }
 

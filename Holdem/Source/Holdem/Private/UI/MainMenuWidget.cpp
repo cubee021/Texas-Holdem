@@ -20,6 +20,9 @@ void UMainMenuWidget::NativeConstruct()
 	Super::NativeConstruct();
 	
 	GI = Cast<UHoldemGameInstance>(GetGameInstance());
+
+	// 마우스 커서 보이게
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 	
 	// SignUpCanvas
 	Btn_Confirm->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClicked_Confirm);

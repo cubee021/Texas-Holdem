@@ -36,4 +36,7 @@ public:
 	// Waiting Phase에서 선택한 아이템
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Item")
 	EItemType SelectedItem;
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetSelectedItem(EItemType NewItem);
 };

@@ -42,10 +42,29 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UCheckBox* CkBox_None;
 
+	UFUNCTION()
+	void OnCheck_Cocktails1(bool bIsChecked);
+
+	UFUNCTION()
+	void OnCheck_Cocktails2(bool bIsChecked);
+
+	UFUNCTION()
+	void OnCheck_Whiskey1(bool bIsChecked);
+
+	UFUNCTION()
+	void OnCheck_Cigar(bool bIsChecked);
+
+	UFUNCTION()
+	void OnCheck_None(bool bIsChecked);
+
 public:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Back;
 
 	UFUNCTION()
 	void OnClicked_Back();
+
+protected:
+	// 라디오버튼 헬퍼 함수
+	void UpdateCheckBoxSelection(class UCheckBox* SelectedCheckBox);
 };

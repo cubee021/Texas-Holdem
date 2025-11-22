@@ -26,3 +26,11 @@ void AHoldemPlayerState::ClearHand()
 {
 	HandCards.Empty();
 }
+
+void AHoldemPlayerState::Server_SetSelectedItem_Implementation(EItemType NewItem)
+{
+	SelectedItem = NewItem;
+
+	UE_LOG(LogTemp, Warning, TEXT("Player %s selected item: %d"),
+		*GetPlayerName(), (int32)NewItem);
+}

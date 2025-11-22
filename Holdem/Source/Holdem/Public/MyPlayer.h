@@ -51,6 +51,12 @@ public:
 	UPROPERTY()
 	class UMyPlayerWidget* PlayerWidget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UUserWidget> BarWidgetClass;
+
+	UPROPERTY()
+	class UBarWidget* BarWidget;
+
 protected:
 	// Interaction
 	// Line Trace 최대 거리

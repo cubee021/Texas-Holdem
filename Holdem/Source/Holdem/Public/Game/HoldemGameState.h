@@ -23,6 +23,8 @@ enum class EHoldemPhase : uint8
 	Showdown	UMETA(DisplayName = "Showdown") // 승자 결정
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, EHoldemPhase, NewPhase);
+
 UCLASS()
 class HOLDEM_API AHoldemGameState : public AGameStateBase
 {
@@ -77,15 +79,23 @@ public:
 
 public:
 	// Game Phase
-	UPROPERTY(Replicated, BlueprintReadOnly)
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentPhase, BlueprintReadOnly, Category = "GamePhase")
 	EHoldemPhase CurrentPhase;
+
+	EHoldemPhase PreviousPhase;
+
+	UFUNCTION()
+	void OnRep_CurrentPhase();
+
+	UPROPERTY(BlueprintAssignable, Category = "GamePhase")
+	FOnPhaseChanged OnPhaseChanged;
 
 	// Waiting - 타이머
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GamePhase")
 	float WaitingTimeRemaining;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GamePhase")
-	float WaitingDuration = 10.f;
+	float WaitingDuration = 15.f;
 
 	// PreFlop - 플레이어당 2장씩 카드 배분
 	UFUNCTION(BlueprintCallable, Category = "GamePhase")
@@ -113,7 +123,7 @@ public:
 	float TableHeight = 90.f;
 
 protected:
-	// 플레이어 앞 카드 배치 위치
+	// 플레이어 카드 배치 위치
 	void GetPlayerCardSpawnLocation(APlayerState* PlayerState,
 		FVector& OutFirstCardLoc, FVector& OutSecondCardLoc);
 
@@ -129,6 +139,14 @@ public:
 		FVector(250.000000,20.000000,90.000000);
 	
 protected:
-	// 카드 테이블에 배치
+	// 공개 카드 테이블에 배치
 	void SpawnCommunityCard(int32 CardIdx);
+
+public:
+	// Item
+	UPROPERTY(EditDefaultsOnly, Category = "Item")
+	TSubclassOf<class AItem> ItemClass;
+	
+	// 플레이어 아이템 배치
+	void SpawnPlayerItem();
 };

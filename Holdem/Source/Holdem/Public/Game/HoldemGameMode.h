@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "HoldemGameState.h"
 #include "HoldemGameMode.generated.h"
 
 /**
@@ -46,4 +47,8 @@ public:
 	void StartRiver();
 
 	//Showdown 구현은 추후에
+
+protected:
+	// Change Phase helper : 상태 서버&클라이언트 일괄 변경
+	void ChangeGamePhase(EHoldemPhase NewState);
 };

@@ -11,6 +11,7 @@ AHoldemGameState::AHoldemGameState()
 {
 	MaxPlayers = 4;
 	CurrentPhase = EHoldemPhase::Waiting;
+	PreviousPhase = EHoldemPhase::Waiting;
 }
 
 void AHoldemGameState::BeginPlay()
@@ -112,6 +113,18 @@ void AHoldemGameState::ResetAllCardsLocation()
 	//for (ACard)
 }
 
+void AHoldemGameState::OnRep_CurrentPhase()
+{
+	if (CurrentPhase != PreviousPhase)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[HoldemGameState] Phase changed from %s to %s"),
+			*UEnum::GetValueAsString(PreviousPhase), *UEnum::GetValueAsString(CurrentPhase));
+
+		OnPhaseChanged.Broadcast(CurrentPhase);
+		PreviousPhase = CurrentPhase;
+	}
+}
+
 void AHoldemGameState::DealPreflopToPlayers()
 {
 	if (!HasAuthority()) return;
@@ -204,5 +217,36 @@ void AHoldemGameState::SpawnCommunityCard(int32 CardIdx)
 	{
 		CommunityCards.Add(NewCard);
 		NewCard->CardState = ECardState::OnTable;
+	}
+}
+
+void AHoldemGameState::SpawnPlayerItem()
+{
+	if (!HasAuthority()) return;
+
+	for (APlayerState* PlayerState : PlayerArray)
+	{
+		AHoldemPlayerState* PS = Cast<AHoldemPlayerState>(PlayerState);
+		if (PS)
+		{
+			// None 타입이면 스킵
+			if (PS->SelectedItem == EItemType::None) continue;
+			
+			APawn* Player = PS->GetPawn();
+			FVector PlayerLocation = Player->GetActorLocation();
+
+			FVector BaseLocation = PlayerLocation +
+				(Player->GetActorForwardVector() * SpawnDistanceFromPlayer);
+			BaseLocation.Z = TableHeight;
+
+			AItem* NewItem = GetWorld()->SpawnActor<AItem>(
+				ItemClass, BaseLocation, FRotator::ZeroRotator);
+
+			if (NewItem)
+			{
+				NewItem->ItemType = PS->SelectedItem;
+				NewItem->SetItemMesh();
+			}
+		}
 	}
 }

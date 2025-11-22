@@ -12,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "UI/BarWidget.h"
 #include "UI/MyPlayerWidget.h"
 #include "UI/NameTagWidget.h"
 
@@ -60,6 +61,12 @@ void AMyPlayer::BeginPlay()
 		{
 			PlayerWidget->AddToViewport();
 		}
+	}
+
+	if (BarWidgetClass)
+	{
+		BarWidget = CreateWidget<UBarWidget>(GetWorld(), BarWidgetClass);
+		IsValid(BarWidget);
 	}
 	
 	// NameTag 업데이트

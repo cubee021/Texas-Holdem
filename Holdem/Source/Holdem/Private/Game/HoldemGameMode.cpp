@@ -29,12 +29,6 @@ void AHoldemGameMode::PostLogin(APlayerController* NewPlayer)
 		int32 PlayerCount = GS->GetPlayerCount();
 		UE_LOG(LogTemp, Log, TEXT("Player connected! Total players: %d/%d"), PlayerCount, GS->MaxPlayers);
 		UE_LOG(LogTemp, Log, TEXT("Player Name: %s"), *NewPlayer->GetName());
-
-		if (PlayerCount >= 2)
-		{
-			StartPreFlop();
-			StartFlop();
-		}
 	}
 }
 
@@ -105,8 +99,9 @@ void AHoldemGameMode::UpdateWaitingTimer()
 	{
 		if(GS->GetPlayerCount() >= 2)
 		{
-			// 타이머 업데이트 되는지 확인하고
-			// 다음 함수 작성
+			// 두 명 이상이면 게임 진행
+			GetWorldTimerManager().ClearTimer(WaitingTimerHandle);
+			StartPreFlop();
 		}
 		else
 		{
@@ -126,9 +121,8 @@ void AHoldemGameMode::StartPreFlop()
 		GS->GenerateDeck();
 		GS->ShuffleDeck();
 
-		GS->DealPreflopToPlayers();
-
-		UE_LOG(LogTemp, Warning, TEXT("PreFlop"));
+		GS->SpawnPlayerItem();
+		//GS->DealPreflopToPlayers();
 	}
 }
 
@@ -138,8 +132,6 @@ void AHoldemGameMode::StartFlop()
 	if (GS)
 	{
 		GS->DealFlopCards();
-
-		UE_LOG(LogTemp, Warning, TEXT("Flop"));
 	}
 }
 
@@ -149,8 +141,6 @@ void AHoldemGameMode::StartTurn()
 	if (GS)
 	{
 		GS->DealTurnCard();
-
-		UE_LOG(LogTemp, Warning, TEXT("Turn"));
 	}
 }
 
@@ -160,7 +150,21 @@ void AHoldemGameMode::StartRiver()
 	if (GS)
 	{
 		GS->DealRiverCard();
+	}
+}
 
-		UE_LOG(LogTemp, Warning, TEXT("River"));
+void AHoldemGameMode::ChangeGamePhase(EHoldemPhase NewState)
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (!GS) return;
+	
+	// 클라이언트쪽 상태 변경
+	GS->CurrentPhase = NewState;
+
+	// 서버쪽 상태 변경 브로드캐스트
+	if (HasAuthority())
+	{
+		GS->OnPhaseChanged.Broadcast(NewState);
+		GS->PreviousPhase = NewState;
 	}
 }
