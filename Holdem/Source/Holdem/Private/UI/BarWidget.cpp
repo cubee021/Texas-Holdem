@@ -5,6 +5,8 @@
 
 #include "Components/Button.h"
 #include "Components/CheckBox.h"
+#include "Components/TextBlock.h"
+#include "Game/HoldemGameInstance.h"
 #include "Game/HoldemPlayerState.h"
 
 void UBarWidget::NativeConstruct()
@@ -41,6 +43,26 @@ void UBarWidget::NativeConstruct()
 	if (Btn_Back)
 	{
 		Btn_Back->OnClicked.AddDynamic(this, &UBarWidget::OnClicked_Back);	
+	}
+
+	APlayerController* PC = GetOwningPlayer();
+	if (PC)
+	{
+		AHoldemPlayerState* PS = PC->GetPlayerState<AHoldemPlayerState>();
+		if (PS)
+		{
+			// 초기값 : None
+			if(CkBox_None)
+			{
+				CkBox_None->SetCheckedState(ECheckBoxState::Checked);
+				PS->Server_SetSelectedItem(EItemType::None);
+			}
+			// 플레이어 이름
+			if (Txt_Name)
+			{
+				Txt_Name->SetText(FText::FromString(PS->GetPlayerName()));
+			}
+		}
 	}
 }
 
@@ -136,7 +158,22 @@ void UBarWidget::OnCheck_None(bool bIsChecked)
 
 void UBarWidget::OnClicked_Back()
 {
+	APlayerController* PC = GetOwningPlayer();
+	if (!PC) return;
+
+	UHoldemGameInstance* GI = Cast<UHoldemGameInstance>(GetGameInstance());
+	if (!GI) return;
 	
+	if (PC->HasAuthority())
+	{
+		// 서버: 세션 파괴 
+		GI->DestroyMySession();
+	}
+	else
+	{
+		// 클라이언트: 세션 떠나기
+		GI->LeaveSession();
+	}
 }
 
 void UBarWidget::UpdateCheckBoxSelection(class UCheckBox* SelectedCheckBox)

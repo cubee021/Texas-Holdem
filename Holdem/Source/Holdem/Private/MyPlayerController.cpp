@@ -44,6 +44,9 @@ void AMyPlayerController::SetupInputComponent()
 
 void AMyPlayerController::Look(const FInputActionValue& Value)
 {
+	// 위젯이 열려있으면 카메라 회전 막기
+	if (bItemWidgetOn) return;
+
 	// 2D Axis 값 가져오기
 	const FVector2D LookAxisVector = Value.Get<FVector2D>();
 
@@ -58,9 +61,9 @@ void AMyPlayerController::Look(const FInputActionValue& Value)
 
 		// 각도 제한 - Pitch(상하)만 제한
 		NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch, MinLook, MaxLook);
-		
+
 		MyPlayer->LookPitch = NewRotation.Pitch;
-		
+
 		SetControlRotation(NewRotation);
 	}
 }
@@ -105,21 +108,31 @@ void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)
 	
 	if (!bItemWidgetOn)
 	{
-		MyPlayer->BarWidget->AddToViewport();
+		// 처음 한 번만 AddToViewport
+		if (!MyPlayer->BarWidget->IsInViewport())
+		{
+			MyPlayer->BarWidget->AddToViewport();
+		}
+
+		// 보이기
+		MyPlayer->BarWidget->SetVisibility(ESlateVisibility::Visible);
 		bItemWidgetOn = true;
 
 		// 마우스 커서 켜기
-		GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-		//SetInputMode(FInputModeUIOnly());
+		SetShowMouseCursor(true);
+		FInputModeGameAndUI InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		SetInputMode(InputMode);
 	}
 	else
 	{
-		MyPlayer->BarWidget->RemoveFromParent();
+		// RemoveFromParent 대신 숨기기
+		MyPlayer->BarWidget->SetVisibility(ESlateVisibility::Hidden);
 		bItemWidgetOn = false;
 
 		// 마우스 커서 끄기
-		GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
-		//SetInputMode(FInputModeGameOnly());
+		SetShowMouseCursor(false);
+		SetInputMode(FInputModeGameOnly());
 	}
 }
 

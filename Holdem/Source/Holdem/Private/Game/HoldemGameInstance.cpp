@@ -29,6 +29,9 @@ void UHoldemGameInstance::Init()
 		// 세션 참여 성공시 호출되는 함수 등록
 		sessionInterface->OnJoinSessionCompleteDelegates.AddUObject(
 			this, &UHoldemGameInstance::OnJoinSessionComplete);
+		// 세션 파괴 성공시 호출되는 함수 등록                                                    
+		sessionInterface->OnDestroySessionCompleteDelegates.AddUObject(
+			this, &UHoldemGameInstance::OnDestroySessionComplete);
 	}
 }
 
@@ -61,8 +64,10 @@ void UHoldemGameInstance::CreateMySession(FString displayName)
 	// sessionSettings 이용해서 세션 생성
 	FUniqueNetIdPtr netId =
 		GetWorld()->GetFirstLocalPlayerFromController()->GetUniqueNetIdForPlatformUser().GetUniqueNetId();
-	sessionInterface->CreateSession(*netId, FName(displayName), sessionSettings);	
+	sessionInterface->CreateSession(*netId, FName(displayName), sessionSettings);
 	//sessionInterface->CreateSession(0, FName(displayName), sessionSettings);
+
+	currSessionName = FName(displayName);
 }
 
 void UHoldemGameInstance::OnCreateSessionComplete(FName sessionName,
@@ -197,4 +202,50 @@ int32 UHoldemGameInstance::GetSelectCharacter(FString userName)
 	if (value == nullptr) return -1;
 
 	return *value;
+}
+
+void UHoldemGameInstance::DestroyMySession()
+{
+	if (sessionInterface.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] 세션 파괴 시작"), *currSessionName.ToString());
+		sessionInterface->DestroySession(currSessionName);
+	}
+}
+
+void UHoldemGameInstance::OnDestroySessionComplete(FName sessionName, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] 세션 파괴 성공"), *sessionName.ToString());
+		// 메인 메뉴로 이동                                                                                                                                     
+		GetWorld()->GetFirstPlayerController()->ClientTravel("/Game/Maps/MainMenu", ETravelType::TRAVEL_Absolute);
+	}
+	else                                                                                                                                                            
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] 세션 파괴 실패"), *sessionName.ToString());
+	}
+}
+
+void UHoldemGameInstance::LeaveSession()
+{
+	if (sessionInterface.IsValid())
+	{
+		FNamedOnlineSession* Session = sessionInterface->GetNamedSession(currSessionName);
+		if (Session)
+		{
+			// 문제 있음 - 세션 파괴 안되고 바로 메인으로 나가버림
+			// 다시 해당 세션 조인이 안됨
+			UE_LOG(LogTemp, Warning, TEXT("클라이언트 세션 나가기"));
+			sessionInterface->DestroySession(currSessionName);
+		}
+	}
+
+	// 메인 메뉴로 이동
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+	{
+			UE_LOG(LogTemp, Warning, TEXT("메인 메뉴로 이동"));
+			GetWorld()->GetFirstPlayerController()->ClientTravel("/Game/Maps/MainMenu", ETravelType::TRAVEL_Absolute);
+	}, 0.5f, false);
 }

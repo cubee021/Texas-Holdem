@@ -19,7 +19,7 @@ public:
 	AHoldemPlayerState();
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-
+	
 public:
 	// 플레이어가 소유한 카드
 	UPROPERTY(BlueprintReadOnly, Category = "Hand")

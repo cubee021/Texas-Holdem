@@ -64,4 +64,14 @@ public:
 
 	void SetSelectCharacter(FString userName, int32 characterIdx);
 	int32 GetSelectCharacter(FString userName);
+
+	// 세션 파괴 관련
+	// 서버용 세션 떠나기
+	UFUNCTION(BlueprintCallable)
+	void DestroyMySession();
+	void OnDestroySessionComplete(FName sessionName, bool bWasSuccessful);
+	// 클라이언트용 세션 떠나기
+	UFUNCTION(BlueprintCallable)
+	void LeaveSession();
+
 };

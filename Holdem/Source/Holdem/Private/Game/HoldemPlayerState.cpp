@@ -3,11 +3,21 @@
 
 #include "Game/HoldemPlayerState.h"
 
+#include "MyPlayerSaveGame.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 AHoldemPlayerState::AHoldemPlayerState()
 {
 	SelectedItem = EItemType::None;
+
+	// 플레이어 이름 설정
+	UMyPlayerSaveGame* SG = Cast<UMyPlayerSaveGame>(
+		UGameplayStatics::LoadGameFromSlot(TEXT("PlayerDataSlot"), 0));
+	if (SG)
+	{
+		SetPlayerName(SG->PlayerName);
+	}
 }
 
 void AHoldemPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
