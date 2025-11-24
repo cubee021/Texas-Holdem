@@ -79,7 +79,7 @@ void AHoldemGameMode::StartWaiting()
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
 	if (GS)
 	{
-		GS->CurrentPhase = EHoldemPhase::Waiting;
+		ChangeGamePhase(EHoldemPhase::Waiting);
 		GS->WaitingTimeRemaining = GS->WaitingDuration;
 
 		GetWorldTimerManager().SetTimer(WaitingTimerHandle, this,
@@ -116,7 +116,7 @@ void AHoldemGameMode::StartPreFlop()
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
 	if (GS)
 	{
-		GS->CurrentPhase = EHoldemPhase::PreFlop;
+		ChangeGamePhase(EHoldemPhase::PreFlop);
 
 		GS->GenerateDeck();
 		GS->ShuffleDeck();

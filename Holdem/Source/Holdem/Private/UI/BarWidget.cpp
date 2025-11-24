@@ -57,12 +57,20 @@ void UBarWidget::NativeConstruct()
 				CkBox_None->SetCheckedState(ECheckBoxState::Checked);
 				PS->Server_SetSelectedItem(EItemType::None);
 			}
-			// 플레이어 이름
-			if (Txt_Name)
-			{
-				Txt_Name->SetText(FText::FromString(PS->GetPlayerName()));
-			}
 		}
+	}
+}
+
+void UBarWidget::SetBarInfo(FString Name, FString SessionName)
+{
+	if (Txt_Name)
+	{
+		Txt_Name->SetText(FText::FromString(Name));
+	}
+
+	if (Txt_SessionName)
+	{
+		Txt_SessionName->SetText(FText::FromString(SessionName));
 	}
 }
 

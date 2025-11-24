@@ -22,6 +22,12 @@ void AMyPlayerController::BeginPlay()
 			Subsystem->AddMappingContext(InputMappingContext, 0);
 		}
 	}
+
+	AHoldemGameState* GS = Cast<AHoldemGameState>(GetWorld()->GetGameState());
+	if (GS)
+	{
+		GS->OnPhaseChanged.AddDynamic(this, &AMyPlayerController::OnGamePhaseChanged);
+	}
 }
 
 void AMyPlayerController::SetupInputComponent()
@@ -45,7 +51,7 @@ void AMyPlayerController::SetupInputComponent()
 void AMyPlayerController::Look(const FInputActionValue& Value)
 {
 	// 위젯이 열려있으면 카메라 회전 막기
-	if (bItemWidgetOn) return;
+	if (IsItemWidgetOpen()) return;
 
 	// 2D Axis 값 가져오기
 	const FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -97,6 +103,16 @@ void AMyPlayerController::RotateHoldingItem(const FInputActionValue& Value)
 	}
 }
 
+void AMyPlayerController::OnGamePhaseChanged(EHoldemPhase NewPhase)
+{
+	// Waiting이 아닌 다른 페이즈로 전환되면 BarWidget 닫기 
+	if ((NewPhase != EHoldemPhase::Waiting) && IsItemWidgetOpen())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PlayerController] Close Widget"));
+		CloseItemWidget();
+	}
+}
+
 void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)
 {
 	// Waiting phase 일 때만 아이템 위젯 표시
@@ -106,7 +122,7 @@ void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)
 	AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
 	if (!MyPlayer) return;
 	
-	if (!bItemWidgetOn)
+	if (!IsItemWidgetOpen())
 	{
 		// 처음 한 번만 AddToViewport
 		if (!MyPlayer->BarWidget->IsInViewport())
@@ -116,7 +132,6 @@ void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)
 
 		// 보이기
 		MyPlayer->BarWidget->SetVisibility(ESlateVisibility::Visible);
-		bItemWidgetOn = true;
 
 		// 마우스 커서 켜기
 		SetShowMouseCursor(true);
@@ -126,14 +141,29 @@ void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)
 	}
 	else
 	{
-		// RemoveFromParent 대신 숨기기
-		MyPlayer->BarWidget->SetVisibility(ESlateVisibility::Hidden);
-		bItemWidgetOn = false;
-
-		// 마우스 커서 끄기
-		SetShowMouseCursor(false);
-		SetInputMode(FInputModeGameOnly());
+		CloseItemWidget();
 	}
+}
+
+void AMyPlayerController::CloseItemWidget()
+{
+	AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
+	if (!MyPlayer) return;
+	
+	// RemoveFromParent 대신 숨기기
+	MyPlayer->BarWidget->SetVisibility(ESlateVisibility::Hidden);
+
+	// 마우스 커서 끄기
+	SetShowMouseCursor(false);
+	SetInputMode(FInputModeGameOnly());
+}
+
+bool AMyPlayerController::IsItemWidgetOpen() const
+{
+	AMyPlayer* MyPlayer = Cast<AMyPlayer>(GetPawn());
+	if (!MyPlayer || !MyPlayer->BarWidget) return false;
+	
+	return MyPlayer->BarWidget->GetVisibility() == ESlateVisibility::Visible;
 }
 
 void AMyPlayerController::Server_RotateHoldingItem_Implementation(float Value)

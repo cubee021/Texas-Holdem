@@ -25,6 +25,8 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Txt_SessionName;
 
+	void SetBarInfo(FString Name, FString SessionName);
+
 public:
 	// Menu
 	UPROPERTY(meta = (BindWidget))

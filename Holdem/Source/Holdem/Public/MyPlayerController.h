@@ -69,12 +69,19 @@ protected:
 	void Server_RotateHoldingItem(float Value);
 
 protected:
-	// Item
+	// Phase deligate
+	UFUNCTION()
+	void OnGamePhaseChanged(EHoldemPhase NewPhase);
+
+protected:
+	// Item (더 정리하려면 PlayerSubsystem으로 빼야 할 듯)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* ItemAction;
-	// 위젯 on/off
-	bool bItemWidgetOn = false;
 	
 	UFUNCTION()
 	void ShowItemWidget(const FInputActionValue& Value);
+	void CloseItemWidget();
+
+	bool IsItemWidgetOpen() const;
+	
 };
