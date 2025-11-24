@@ -28,6 +28,9 @@ void AMyPlayerController::BeginPlay()
 	{
 		GS->OnPhaseChanged.AddDynamic(this, &AMyPlayerController::OnGamePhaseChanged);
 	}
+
+	SetShowMouseCursor(false);
+	SetInputMode(FInputModeGameOnly());
 }
 
 void AMyPlayerController::SetupInputComponent()
