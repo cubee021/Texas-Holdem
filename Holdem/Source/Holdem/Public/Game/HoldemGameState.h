@@ -47,7 +47,9 @@ public:
 	int32 MaxPlayers = 6;
 
 public:
-	// Deck Management
+	/*==========================
+	* Deck Management
+	===========================*/
 	// 덱 (52장 카드 데이터)
 	UPROPERTY(BlueprintReadOnly, Category = "Deck")
 	TArray<FCardData> Deck;
@@ -73,16 +75,17 @@ protected:
 	ACard* SpawnCard(const FCardData& Data, FVector Location, FRotator Rotation);
 
 public:
-	// 모든 카드 원위치
-	UFUNCTION(BlueprintCallable, Category = "Deck")
-	void ResetAllCardsLocation();
-
-public:
-	// Game Phase
+	/*==========================
+	* Game Phase
+	===========================*/
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentPhase, BlueprintReadOnly, Category = "GamePhase")
 	EHoldemPhase CurrentPhase;
 
 	EHoldemPhase PreviousPhase;
+
+	// Look 입력 비활성화 (Phase 전환 연출용)
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Input")
+	bool bIsLookDisabled;
 
 	UFUNCTION()
 	void OnRep_CurrentPhase();
@@ -111,16 +114,15 @@ public:
 	void DealRiverCard();
 	
 public:
-	// Player Cards
+	/*==========================
+	* Player Cards
+	===========================*/
 	// 플레이어 앞 배치 거리
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
-	float SpawnDistanceFromPlayer = 90.f;
+	float PlayerCardSpawnDistance = 90.f;
 	// 두 카드 간 간격
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
 	float CardSpacing = 25.f;
-	// 테이블 높이
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
-	float TableHeight = 90.f;
 
 protected:
 	// 플레이어 카드 배치 위치
@@ -128,7 +130,9 @@ protected:
 		FVector& OutFirstCardLoc, FVector& OutSecondCardLoc);
 
 public:
-	// Community Cards
+	/*==========================
+	* Community Cards
+	===========================*/
 	// 공개 카드
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "CommunityCards")
 	TArray<ACard*> CommunityCards;
@@ -143,10 +147,31 @@ protected:
 	void SpawnCommunityCard(int32 CardIdx);
 
 public:
-	// Item
+	/*==========================
+	* Item
+	===========================*/
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	TSubclassOf<class AItem> ItemClass;
+
+	// 플레이어 앞 배치 거리
+	UPROPERTY(EditDefaultsOnly, Category = "Item")
+	float ItemSpawnDistance = 80.f;
 	
 	// 플레이어 아이템 배치
 	void SpawnPlayerItem();
+
+public:
+	/*==========================
+	* Helper
+	===========================*/
+	// 모든 카드 원위치
+	UFUNCTION(BlueprintCallable, Category = "Deck")
+	void ResetAllCardsLocation();
+
+	// 테이블 높이
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
+	float TableHeight = 90.f;
+	// 플레이어로부터 떨어진 테이블 위 위치
+	FVector GetBaseLocationFromPlayer(APawn* Player, float Distance);
+	
 };

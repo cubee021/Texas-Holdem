@@ -32,6 +32,12 @@ public:
 
 	FTimerHandle WaitingTimerHandle;
 	void UpdateWaitingTimer();
+
+	// PreFlop 시작 시 Look 입력 차단용 타이머
+	FTimerHandle LookDisableTimerHandle;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "GamePhase")
+	float LookDisableTime = 3.f;
 	
 	// PreFlop - 플레이어당 2장씩 카드 배분
 	UFUNCTION(BlueprintCallable, Category = "GamePhase")

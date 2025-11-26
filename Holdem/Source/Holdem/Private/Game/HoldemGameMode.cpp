@@ -118,11 +118,21 @@ void AHoldemGameMode::StartPreFlop()
 	{
 		ChangeGamePhase(EHoldemPhase::PreFlop);
 
+		// 1초 동안 Look 입력 비활성화
+		GS->bIsLookDisabled = true;
+		GetWorldTimerManager().SetTimer(LookDisableTimerHandle,[this, GS]()
+			{
+				if (GS)
+				{
+					GS->bIsLookDisabled = false;
+				}
+			},LookDisableTime, false);
+
 		GS->GenerateDeck();
 		GS->ShuffleDeck();
-
+		
+		GS->DealPreflopToPlayers();
 		GS->SpawnPlayerItem();
-		//GS->DealPreflopToPlayers();
 	}
 }
 

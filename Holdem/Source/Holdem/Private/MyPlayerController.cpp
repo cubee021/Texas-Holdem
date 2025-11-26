@@ -56,6 +56,12 @@ void AMyPlayerController::Look(const FInputActionValue& Value)
 	// 위젯이 열려있으면 카메라 회전 막기
 	if (IsItemWidgetOpen()) return;
 
+	// Look 입력이 비활성화되어 있으면 차단
+	if (const AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>())
+	{
+		if (GS->bIsLookDisabled) return;
+	}
+
 	// 2D Axis 값 가져오기
 	const FVector2D LookAxisVector = Value.Get<FVector2D>();
 

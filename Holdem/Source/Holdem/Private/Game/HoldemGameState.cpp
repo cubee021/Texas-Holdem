@@ -12,6 +12,7 @@ AHoldemGameState::AHoldemGameState()
 	MaxPlayers = 4;
 	CurrentPhase = EHoldemPhase::Waiting;
 	PreviousPhase = EHoldemPhase::Waiting;
+	bIsLookDisabled = false;
 }
 
 void AHoldemGameState::BeginPlay()
@@ -27,6 +28,7 @@ void AHoldemGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AHoldemGameState, CurrentPhase);
 	DOREPLIFETIME(AHoldemGameState, CommunityCards);
 	DOREPLIFETIME(AHoldemGameState, WaitingTimeRemaining);
+	DOREPLIFETIME(AHoldemGameState, bIsLookDisabled);
 }
 
 void AHoldemGameState::GenerateDeck()
@@ -196,15 +198,24 @@ void AHoldemGameState::GetPlayerCardSpawnLocation(APlayerState* PlayerState, FVe
 	APawn* Player = PlayerState->GetPawn();
 	FVector PlayerLocation = Player->GetActorLocation();
 
-	FVector BaseLocation = PlayerLocation +
-		(Player->GetActorForwardVector() * SpawnDistanceFromPlayer);
-	BaseLocation.Z = TableHeight;
+	FVector BaseLocation = GetBaseLocationFromPlayer(Player, PlayerCardSpawnDistance);
 
 	// BaseLocation 기준으로 좌우에 나란히 배치
 	float HalfSpacing = CardSpacing / 2.f;
 	
 	OutFirstCardLoc = BaseLocation - (Player->GetActorRightVector() * HalfSpacing);
 	OutSecondCardLoc = BaseLocation + (Player->GetActorRightVector() * HalfSpacing);
+}
+
+FVector AHoldemGameState::GetBaseLocationFromPlayer(APawn* Player, float Distance)
+{
+	FVector PlayerLocation = Player->GetActorLocation();
+
+	FVector BaseLocation = PlayerLocation +
+		(Player->GetActorForwardVector() * Distance);
+	BaseLocation.Z = TableHeight;
+
+	return BaseLocation;
 }
 
 void AHoldemGameState::SpawnCommunityCard(int32 CardIdx)
@@ -231,13 +242,9 @@ void AHoldemGameState::SpawnPlayerItem()
 		{
 			// None 타입이면 스킵
 			if (PS->SelectedItem == EItemType::None) continue;
-			
-			APawn* Player = PS->GetPawn();
-			FVector PlayerLocation = Player->GetActorLocation();
 
-			FVector BaseLocation = PlayerLocation +
-				(Player->GetActorForwardVector() * SpawnDistanceFromPlayer);
-			BaseLocation.Z = TableHeight;
+			APawn* Player = PS->GetPawn();
+			FVector BaseLocation = GetBaseLocationFromPlayer(Player, ItemSpawnDistance);
 
 			AItem* NewItem = GetWorld()->SpawnActor<AItem>(
 				ItemClass, BaseLocation, FRotator::ZeroRotator);
