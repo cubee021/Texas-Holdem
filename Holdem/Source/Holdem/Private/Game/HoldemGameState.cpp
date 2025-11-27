@@ -104,7 +104,7 @@ ACard* AHoldemGameState::DrawAndSpawnCard(FVector Location, FRotator Rotation)
 	}
 
 	FCardData DrawCard = Deck.Pop();
-	// 여기 이렇게 구현한 이유?
+	
 	return SpawnCard(DrawCard, Location, Rotation);
 }
 
@@ -144,8 +144,7 @@ void AHoldemGameState::DealPreflopToPlayers()
 
 			// ★ 카드 회전: 테이블 중심 → 플레이어 방향 기준
 			APawn* Player = PS->GetPawn();
-			FVector PlayerLocation = Player->GetActorLocation();
-			FVector ForwardDirection = (PlayerLocation - TableLocation).GetSafeNormal2D();
+			FVector ForwardDirection = GetForwardDirection(Player);
 
 			// Forward 방향을 향하도록 회전 행렬 생성
 			FRotator CardRotation = FRotationMatrix::MakeFromYZ(ForwardDirection, FVector::UpVector).Rotator();
@@ -197,15 +196,11 @@ void AHoldemGameState::GetPlayerCardSpawnLocation(APlayerState* PlayerState, FVe
                                                   FVector& OutSecondCardLoc)
 {
 	if (!PlayerState) return;
-
+	
 	APawn* Player = PlayerState->GetPawn();
-	FVector PlayerLocation = Player->GetActorLocation();
-
-	// ★ 핵심: 테이블 중심 → 플레이어 방향 = 플레이어의 "앞"
-	// Z축 무시하고 평면상 방향만 계산
-	FVector ForwardDirection = (TableLocation-PlayerLocation).GetSafeNormal2D();
-
-	FVector BaseLocation = PlayerLocation + (ForwardDirection * PlayerCardSpawnDistance);
+	
+	FVector ForwardDirection = GetForwardDirection(Player);
+	FVector BaseLocation = Player->GetActorLocation() + (ForwardDirection * PlayerCardSpawnDistance);
 
 	// ★ Forward와 직교하는 Right 벡터: Z축과 Forward의 외적
 	FVector RightDirection = FVector::CrossProduct(FVector::UpVector, ForwardDirection);
@@ -217,15 +212,13 @@ void AHoldemGameState::GetPlayerCardSpawnLocation(APlayerState* PlayerState, FVe
 	OutSecondCardLoc = BaseLocation + (RightDirection * HalfSpacing);
 }
 
-FVector AHoldemGameState::GetBaseLocationFromPlayer(APawn* Player, float Distance)
+FVector AHoldemGameState::GetForwardDirection(AActor* Player)
 {
 	FVector PlayerLocation = Player->GetActorLocation();
 
-	FVector BaseLocation = PlayerLocation +
-		(Player->GetActorForwardVector() * Distance);
-	BaseLocation.Z = TableHeight;
-
-	return BaseLocation;
+	// ★ 핵심: 테이블 중심 → 플레이어 방향 = 플레이어의 "앞"
+	// Z축 무시하고 평면상 방향만 계산
+	return (TableLocation-PlayerLocation).GetSafeNormal2D();
 }
 
 void AHoldemGameState::SpawnCommunityCard(int32 CardIdx, float RotationAngle)
@@ -263,8 +256,15 @@ void AHoldemGameState::SpawnPlayerItem()
 			if (PS->SelectedItem == EItemType::None) continue;
 
 			APawn* Player = PS->GetPawn();
-			FVector BaseLocation = GetBaseLocationFromPlayer(Player, ItemSpawnDistance);
+			FVector PlayerLocation = Player->GetActorLocation();
+			
+			FVector ForwardDirection = GetForwardDirection(Player);
+			FVector RightDirection = FVector::CrossProduct(FVector::UpVector, ForwardDirection);
 
+			FVector BaseLocation = PlayerLocation + (ForwardDirection * ItemSpawnDistance);
+			BaseLocation.Z = TableHeight;
+			BaseLocation += RightDirection * ItemDistanceFromHalf;
+			
 			AItem* NewItem = GetWorld()->SpawnActor<AItem>(
 				ItemClass, BaseLocation, FRotator::ZeroRotator);
 

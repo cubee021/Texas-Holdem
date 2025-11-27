@@ -32,7 +32,7 @@ protected:
 	float MaxLook = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category="Look")
-	float MinLook = -50.0f;
+	float MinLook = -60.0f;
 	
 	UFUNCTION()
 	void Look(const FInputActionValue& Value);

@@ -61,7 +61,7 @@ protected:
 	// Interaction
 	// Line Trace 최대 거리
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float InteractDistance = 1000.0f;
+	float InteractDistance = 500.0f;
 
 public:
 	// 서버쪽 pitch 수동으로 동기화

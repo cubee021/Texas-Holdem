@@ -129,6 +129,9 @@ protected:
 	void GetPlayerCardSpawnLocation(APlayerState* PlayerState,
 		FVector& OutFirstCardLoc, FVector& OutSecondCardLoc);
 
+	// 플레이어가 테이블 보는 방향
+	FVector GetForwardDirection(AActor* Player);
+	
 public:
 	//--------------------------------//
 	// Community Cards
@@ -143,7 +146,7 @@ public:
 		FVector(0,0,0);
 
 	// 테이블 높이
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
+	UPROPERTY(EditDefaultsOnly, Category = "CommunityCards")
 	float TableHeight = 90.f;
 
 	// Community Cards 배열 회전 각도 (도 단위)
@@ -151,7 +154,7 @@ public:
 	float CommunityCardRotationAngle = 45.f;
 
 	// 두 카드 간 간격
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
+	UPROPERTY(EditDefaultsOnly, Category = "CommunityCards")
 	float CommunityCardSpacing = 19.3f;
 
 protected:
@@ -165,9 +168,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	TSubclassOf<class AItem> ItemClass;
 
-	// 플레이어 앞 배치 거리
+	// 아이템 앞 배치 거리
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
-	float ItemSpawnDistance = 80.f;
+	float ItemSpawnDistance = 65.f;
+	// 아이템 옆 배치 거리
+	UPROPERTY(EditDefaultsOnly, Category = "Item")
+	float ItemDistanceFromHalf = 30.f;
 	
 	// 플레이어 아이템 배치
 	void SpawnPlayerItem();
@@ -179,6 +185,4 @@ public:
 	// 모든 카드 원위치
 	UFUNCTION(BlueprintCallable, Category = "Deck")
 	void ResetAllCardsLocation();
-	// 플레이어로부터 떨어진 테이블 위 위치
-	FVector GetBaseLocationFromPlayer(APawn* Player, float Distance);
 };
