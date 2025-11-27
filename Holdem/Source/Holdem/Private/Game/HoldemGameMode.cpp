@@ -97,7 +97,7 @@ void AHoldemGameMode::UpdateWaitingTimer()
 
 	if (GS->WaitingTimeRemaining <= 0.f)
 	{
-		if(GS->GetPlayerCount() >= 2)
+		if(GS->GetPlayerCount() >= 1)
 		{
 			// 두 명 이상이면 게임 진행
 			GetWorldTimerManager().ClearTimer(WaitingTimerHandle);
@@ -119,6 +119,7 @@ void AHoldemGameMode::StartPreFlop()
 		ChangeGamePhase(EHoldemPhase::PreFlop);
 
 		// 1초 동안 Look 입력 비활성화
+		/*
 		GS->bIsLookDisabled = true;
 		GetWorldTimerManager().SetTimer(LookDisableTimerHandle,[this, GS]()
 			{
@@ -127,12 +128,15 @@ void AHoldemGameMode::StartPreFlop()
 					GS->bIsLookDisabled = false;
 				}
 			},LookDisableTime, false);
+		*/
 
 		GS->GenerateDeck();
 		GS->ShuffleDeck();
 		
 		GS->DealPreflopToPlayers();
 		GS->SpawnPlayerItem();
+
+		StartFlop();
 	}
 }
 
@@ -141,6 +145,7 @@ void AHoldemGameMode::StartFlop()
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
 	if (GS)
 	{
+		ChangeGamePhase(EHoldemPhase::Flop);
 		GS->DealFlopCards();
 	}
 }
@@ -150,6 +155,7 @@ void AHoldemGameMode::StartTurn()
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
 	if (GS)
 	{
+		ChangeGamePhase(EHoldemPhase::Turn);
 		GS->DealTurnCard();
 	}
 }
@@ -159,6 +165,7 @@ void AHoldemGameMode::StartRiver()
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
 	if (GS)
 	{
+		ChangeGamePhase(EHoldemPhase::River);
 		GS->DealRiverCard();
 	}
 }

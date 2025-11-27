@@ -47,9 +47,9 @@ public:
 	int32 MaxPlayers = 6;
 
 public:
-	/*==========================
-	* Deck Management
-	===========================*/
+	//--------------------------------//
+	// Deck Management
+	//--------------------------------//
 	// 덱 (52장 카드 데이터)
 	UPROPERTY(BlueprintReadOnly, Category = "Deck")
 	TArray<FCardData> Deck;
@@ -75,9 +75,9 @@ protected:
 	ACard* SpawnCard(const FCardData& Data, FVector Location, FRotator Rotation);
 
 public:
-	/*==========================
-	* Game Phase
-	===========================*/
+	//--------------------------------//
+	// Game Phase
+	//--------------------------------//
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentPhase, BlueprintReadOnly, Category = "GamePhase")
 	EHoldemPhase CurrentPhase;
 
@@ -114,15 +114,15 @@ public:
 	void DealRiverCard();
 	
 public:
-	/*==========================
-	* Player Cards
-	===========================*/
+	//--------------------------------//
+	// Player Cards
+	//--------------------------------//
 	// 플레이어 앞 배치 거리
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
-	float PlayerCardSpawnDistance = 90.f;
+	float PlayerCardSpawnDistance = 85.f;
 	// 두 카드 간 간격
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
-	float CardSpacing = 25.f;
+	float PlayerCardSpacing = 15.f;
 
 protected:
 	// 플레이어 카드 배치 위치
@@ -130,9 +130,9 @@ protected:
 		FVector& OutFirstCardLoc, FVector& OutSecondCardLoc);
 
 public:
-	/*==========================
-	* Community Cards
-	===========================*/
+	//--------------------------------//
+	// Community Cards
+	//--------------------------------//
 	// 공개 카드
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "CommunityCards")
 	TArray<ACard*> CommunityCards;
@@ -140,16 +140,28 @@ public:
 	// 테이블 중앙
 	UPROPERTY(EditDefaultsOnly, Category = "CommunityCards")
 	FVector TableLocation =
-		FVector(250.000000,20.000000,90.000000);
-	
+		FVector(0,0,0);
+
+	// 테이블 높이
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
+	float TableHeight = 90.f;
+
+	// Community Cards 배열 회전 각도 (도 단위)
+	UPROPERTY(EditDefaultsOnly, Category = "CommunityCards")
+	float CommunityCardRotationAngle = 45.f;
+
+	// 두 카드 간 간격
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
+	float CommunityCardSpacing = 19.3f;
+
 protected:
 	// 공개 카드 테이블에 배치
-	void SpawnCommunityCard(int32 CardIdx);
+	void SpawnCommunityCard(int32 CardIdx, float RotationAngle);
 
 public:
-	/*==========================
-	* Item
-	===========================*/
+	//--------------------------------//
+	// Item
+	//--------------------------------//
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	TSubclassOf<class AItem> ItemClass;
 
@@ -161,17 +173,12 @@ public:
 	void SpawnPlayerItem();
 
 public:
-	/*==========================
-	* Helper
-	===========================*/
+	//--------------------------------//
+	// Utils
+	//--------------------------------//
 	// 모든 카드 원위치
 	UFUNCTION(BlueprintCallable, Category = "Deck")
 	void ResetAllCardsLocation();
-
-	// 테이블 높이
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
-	float TableHeight = 90.f;
 	// 플레이어로부터 떨어진 테이블 위 위치
 	FVector GetBaseLocationFromPlayer(APawn* Player, float Distance);
-	
 };

@@ -140,12 +140,15 @@ void AHoldemGameState::DealPreflopToPlayers()
 			PS->ClearHand();
 
 			FVector FirstCardLoc, SecondCardLoc;
-			GetPlayerCardSpawnLocation(PS,FirstCardLoc, SecondCardLoc);
+			GetPlayerCardSpawnLocation(PS, FirstCardLoc, SecondCardLoc);
 
-			// 플레이어가 보기에 카드가 세로로 놓이도록
+			// ★ 카드 회전: 테이블 중심 → 플레이어 방향 기준
 			APawn* Player = PS->GetPawn();
-			FRotator CardRotation = FRotationMatrix::MakeFromYZ(
-				Player->GetActorForwardVector(), FVector::UpVector).Rotator();
+			FVector PlayerLocation = Player->GetActorLocation();
+			FVector ForwardDirection = (PlayerLocation - TableLocation).GetSafeNormal2D();
+
+			// Forward 방향을 향하도록 회전 행렬 생성
+			FRotator CardRotation = FRotationMatrix::MakeFromYZ(ForwardDirection, FVector::UpVector).Rotator();
 
 			ACard* FirstCard = DrawAndSpawnCard(FirstCardLoc, CardRotation);
 			if (FirstCard)
@@ -172,7 +175,7 @@ void AHoldemGameState::DealFlopCards()
 
 	for (int32 i=0; i<3; i++)
 	{
-		SpawnCommunityCard(i);
+		SpawnCommunityCard(i, CommunityCardRotationAngle);
 	}
 }
 
@@ -180,14 +183,14 @@ void AHoldemGameState::DealTurnCard()
 {
 	if (!HasAuthority()) return;
 
-	SpawnCommunityCard(3);
+	SpawnCommunityCard(3, CommunityCardRotationAngle);
 }
 
 void AHoldemGameState::DealRiverCard()
 {
 	if (!HasAuthority()) return;
 
-	SpawnCommunityCard(4);
+	SpawnCommunityCard(4, CommunityCardRotationAngle);
 }
 
 void AHoldemGameState::GetPlayerCardSpawnLocation(APlayerState* PlayerState, FVector& OutFirstCardLoc,
@@ -198,13 +201,20 @@ void AHoldemGameState::GetPlayerCardSpawnLocation(APlayerState* PlayerState, FVe
 	APawn* Player = PlayerState->GetPawn();
 	FVector PlayerLocation = Player->GetActorLocation();
 
-	FVector BaseLocation = GetBaseLocationFromPlayer(Player, PlayerCardSpawnDistance);
+	// ★ 핵심: 테이블 중심 → 플레이어 방향 = 플레이어의 "앞"
+	// Z축 무시하고 평면상 방향만 계산
+	FVector ForwardDirection = (TableLocation-PlayerLocation).GetSafeNormal2D();
+
+	FVector BaseLocation = PlayerLocation + (ForwardDirection * PlayerCardSpawnDistance);
+
+	// ★ Forward와 직교하는 Right 벡터: Z축과 Forward의 외적
+	FVector RightDirection = FVector::CrossProduct(FVector::UpVector, ForwardDirection);
 
 	// BaseLocation 기준으로 좌우에 나란히 배치
-	float HalfSpacing = CardSpacing / 2.f;
-	
-	OutFirstCardLoc = BaseLocation - (Player->GetActorRightVector() * HalfSpacing);
-	OutSecondCardLoc = BaseLocation + (Player->GetActorRightVector() * HalfSpacing);
+	float HalfSpacing = PlayerCardSpacing / 2.f;
+
+	OutFirstCardLoc = BaseLocation - (RightDirection * HalfSpacing);
+	OutSecondCardLoc = BaseLocation + (RightDirection * HalfSpacing);
 }
 
 FVector AHoldemGameState::GetBaseLocationFromPlayer(APawn* Player, float Distance)
@@ -218,12 +228,21 @@ FVector AHoldemGameState::GetBaseLocationFromPlayer(APawn* Player, float Distanc
 	return BaseLocation;
 }
 
-void AHoldemGameState::SpawnCommunityCard(int32 CardIdx)
+void AHoldemGameState::SpawnCommunityCard(int32 CardIdx, float RotationAngle)
 {
-	float Offset = (CardIdx - 2) * CardSpacing;
-	FVector SpawnLocation = TableLocation + FVector(Offset, 0, 0);
-	
-	ACard* NewCard = DrawAndSpawnCard(SpawnLocation, FRotator::ZeroRotator);
+	// 기본 위치 계산 (가로 배열)
+	float Offset = (CardIdx - 2) * CommunityCardSpacing;
+	FVector LocalPos = FVector(Offset, 0, 0);
+
+	// ★ 회전 적용: Z축 기준으로 배열 회전
+	FVector RotatedPos = LocalPos.RotateAngleAxis(RotationAngle, FVector::UpVector);
+	FVector SpawnLocation = TableLocation + RotatedPos;
+	SpawnLocation.Z = TableHeight;
+
+	// 카드 자체도 같은 각도로 회전
+	FRotator CardRotation = FRotator(0.0f, RotationAngle, 0.0f);
+
+	ACard* NewCard = DrawAndSpawnCard(SpawnLocation, CardRotation);
 	if (NewCard)
 	{
 		CommunityCards.Add(NewCard);
