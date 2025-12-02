@@ -11,13 +11,17 @@ AHoldemPlayerState::AHoldemPlayerState()
 {
 	SelectedItem = EItemType::None;
 
-	// 플레이어 이름 설정
+	// 플레이어 이름 설정(이거 뭔가 잘 안됨)
 	UMyPlayerSaveGame* SG = Cast<UMyPlayerSaveGame>(
 		UGameplayStatics::LoadGameFromSlot(TEXT("PlayerDataSlot"), 0));
 	if (SG)
 	{
 		SetPlayerName(SG->PlayerName);
 	}
+
+	bIsFolded = false;
+	Position = EPlayerPosition::None;
+	CurrentChips = 1000;
 }
 
 void AHoldemPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -25,6 +29,11 @@ void AHoldemPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProper
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AHoldemPlayerState, SelectedItem);
+
+	DOREPLIFETIME(AHoldemPlayerState, bIsFolded);
+	DOREPLIFETIME(AHoldemPlayerState, Position);
+
+	DOREPLIFETIME(AHoldemPlayerState, CurrentChips);
 }
 
 void AHoldemPlayerState::AddCard(ACard* Card)

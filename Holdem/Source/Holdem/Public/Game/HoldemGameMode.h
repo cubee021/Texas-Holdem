@@ -51,8 +51,9 @@ public:
 	// River - 테이블 중앙에 5번째 카드 배분
 	UFUNCTION(BlueprintCallable, Category = "GamePhase")
 	void StartRiver();
-
-	//Showdown 구현은 추후에
+	// Showdown - 승자 결정
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	void StartShowdown();
 
 protected:
 	// Change Phase helper : 상태 서버&클라이언트 일괄 변경

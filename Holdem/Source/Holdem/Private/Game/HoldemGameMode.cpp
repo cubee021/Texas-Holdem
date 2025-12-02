@@ -170,6 +170,61 @@ void AHoldemGameMode::StartRiver()
 	}
 }
 
+void AHoldemGameMode::StartShowdown()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (GS)
+	{
+		ChangeGamePhase(EHoldemPhase::Showdown);
+
+		TArray<APlayerState*> ActivePlayers;
+		for (auto PS : GS->PlayerArray)
+		{
+			AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
+			if (Player && !Player->bIsFolded)
+				ActivePlayers.Add(Player);
+		}
+
+		// 승자 판정 
+		TArray<APlayerState*> Winners = GS->DetermineWinner(ActivePlayers);
+
+		// 최종 결과 로그
+		if (Winners.Num() > 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("========== SHOWDOWN RESULT =========="));
+
+			if (Winners.Num() == 1)
+			{
+				// 단독 승자                                                                                                                            
+				AHoldemPlayerState* Winner = Cast<AHoldemPlayerState>(Winners[0]);
+				if (Winner)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("🏆 Winner: %s"), *Winner->GetPlayerName());
+				}
+			}
+			else                                                                                                                                            
+			{
+				// 동점 승자들                                                                                                                          
+				UE_LOG(LogTemp, Warning, TEXT("🤝 Split Pot! Winners:"));
+				for (APlayerState* WinnerPS : Winners)
+				{
+					AHoldemPlayerState* Winner = Cast<AHoldemPlayerState>(WinnerPS);
+					if (Winner)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("  - %s"), *Winner->GetPlayerName());
+					}
+				}
+			}
+
+			UE_LOG(LogTemp, Warning, TEXT("====================================="));
+		}
+		else                                                                                                                                                    
+		{
+			UE_LOG(LogTemp, Error, TEXT("[StartShowdown] No winners found!"));
+		}
+	}
+}
+
 void AHoldemGameMode::ChangeGamePhase(EHoldemPhase NewState)
 {
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();

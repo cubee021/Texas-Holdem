@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
 #include "Card.h"
+#include "HandEvaluator.h"
 #include "HoldemGameState.generated.h"
 
 /**
@@ -21,6 +22,25 @@ enum class EHoldemPhase : uint8
 	Turn		UMETA(DisplayName = "Turn"),    // 테이블 4번째 카드 오픈 + 베팅
 	River		UMETA(DisplayName = "River"),   // 테이블 5번째 카드 오픈 + 베팅
 	Showdown	UMETA(DisplayName = "Showdown") // 승자 결정
+};
+
+// 플레이어의 개별 최고패 저장
+USTRUCT(BlueprintType)
+struct FPlayerHandPair
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	APlayerState* Player;
+
+	UPROPERTY()
+	FHandEvaluation Evaluate;
+
+	// 기본 생성자                                                                                                                                                    
+	FPlayerHandPair() : Player(nullptr) {}
+	// 파라미터 생성자                                                                                                                                                
+	FPlayerHandPair(APlayerState* InPlayer, FHandEvaluation InEval)
+		: Player(InPlayer), Evaluate(InEval) {}
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, EHoldemPhase, NewPhase);
@@ -47,9 +67,9 @@ public:
 	int32 MaxPlayers = 6;
 
 public:
-	//--------------------------------//
+	//---------------------------------------------------//
 	// Deck Management
-	//--------------------------------//
+	//---------------------------------------------------//
 	// 덱 (52장 카드 데이터)
 	UPROPERTY(BlueprintReadOnly, Category = "Deck")
 	TArray<FCardData> Deck;
@@ -75,9 +95,9 @@ protected:
 	ACard* SpawnCard(const FCardData& Data, FVector Location, FRotator Rotation);
 
 public:
-	//--------------------------------//
+	//---------------------------------------------------//
 	// Game Phase
-	//--------------------------------//
+	//---------------------------------------------------//
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentPhase, BlueprintReadOnly, Category = "GamePhase")
 	EHoldemPhase CurrentPhase;
 
@@ -114,9 +134,9 @@ public:
 	void DealRiverCard();
 	
 public:
-	//--------------------------------//
+	//---------------------------------------------------//
 	// Player Cards
-	//--------------------------------//
+	//---------------------------------------------------//
 	// 플레이어 앞 배치 거리
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCards")
 	float PlayerCardSpawnDistance = 85.f;
@@ -133,9 +153,9 @@ protected:
 	FVector GetForwardDirection(AActor* Player);
 	
 public:
-	//--------------------------------//
+	//---------------------------------------------------//
 	// Community Cards
-	//--------------------------------//
+	//---------------------------------------------------//
 	// 공개 카드
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "CommunityCards")
 	TArray<ACard*> CommunityCards;
@@ -162,9 +182,20 @@ protected:
 	void SpawnCommunityCard(int32 CardIdx, float RotationAngle);
 
 public:
-	//--------------------------------//
+	//---------------------------------------------------//
+	// Showdown
+	//---------------------------------------------------//
+	UPROPERTY()
+	class UHandEvaluator* HandEvaluator;
+
+	// 승자 판정 (동점 승자 모두 저장)
+	UFUNCTION(BlueprintCallable, Category = "GamePhase")
+	TArray<APlayerState*> DetermineWinner(const TArray<APlayerState*>& ActivePlayers);
+
+public:
+	//---------------------------------------------------//
 	// Item
-	//--------------------------------//
+	//---------------------------------------------------//
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	TSubclassOf<class AItem> ItemClass;
 
@@ -179,9 +210,9 @@ public:
 	void SpawnPlayerItem();
 
 public:
-	//--------------------------------//
+	//---------------------------------------------------//
 	// Utils
-	//--------------------------------//
+	//---------------------------------------------------//
 	// 모든 카드 원위치
 	UFUNCTION(BlueprintCallable, Category = "Deck")
 	void ResetAllCardsLocation();

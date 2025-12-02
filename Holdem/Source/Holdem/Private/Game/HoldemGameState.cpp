@@ -3,6 +3,7 @@
 
 #include "Game/HoldemGameState.h"
 
+#include "Game/HandEvaluator.h"
 #include "Game/HoldemPlayerState.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
@@ -18,6 +19,11 @@ AHoldemGameState::AHoldemGameState()
 void AHoldemGameState::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		HandEvaluator = NewObject<UHandEvaluator>(this);
+	}
 }
 
 void AHoldemGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -241,6 +247,65 @@ void AHoldemGameState::SpawnCommunityCard(int32 CardIdx, float RotationAngle)
 		CommunityCards.Add(NewCard);
 		NewCard->CardState = ECardState::OnTable;
 	}
+}
+
+TArray<APlayerState*> AHoldemGameState::DetermineWinner(const TArray<APlayerState*>& ActivePlayers)
+{
+	TArray<APlayerState*> Winners;
+
+	TArray<FPlayerHandPair> PlayerHandPairs;
+	for (auto PS : ActivePlayers)
+	{
+		if (AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS))
+		{
+			// 해당 플레이어의 카드 + 공개 카드
+			TArray<ACard*> AllCards;
+			AllCards.Append(Player->HandCards);
+			AllCards.Append(CommunityCards);
+
+			// HandEvaluator에 7장 통째로 전달
+			FHandEvaluation Result = HandEvaluator->GetBestHandFrom7Cards(AllCards);
+
+			PlayerHandPairs.Add(FPlayerHandPair(Player, Result));
+
+			UE_LOG(LogTemp, Warning, TEXT("[DetermineWinner] Player %s: Rank %s"),
+								*Player->GetPlayerName(), *UEnum::GetValueAsString(Result.Rank));
+		}
+	}
+
+	// 플레이어 없으면 빈 배열 반환
+	if (PlayerHandPairs.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[DetermineWinner] No active players!"));
+		return Winners;
+	}
+
+	// High hand 찾기
+	FHandEvaluation BestHand = PlayerHandPairs[0].Evaluate;
+	for (const FPlayerHandPair& Pair : PlayerHandPairs)
+	{
+		if (Pair.Evaluate > BestHand) BestHand = Pair.Evaluate;
+	}
+
+	// High hand 가진 플레이어들 수집
+	for (const FPlayerHandPair& Pair : PlayerHandPairs)
+	{
+		bool bIsSame = !(Pair.Evaluate > BestHand) && !(BestHand > Pair.Evaluate);
+
+		if (bIsSame)
+		{
+			Winners.Add(Pair.Player);
+
+			// 승자 로그                                                                                                                                    
+			AHoldemPlayerState* WinnerPS = Cast<AHoldemPlayerState>(Pair.Player);
+			if (WinnerPS)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[DetermineWinner] Winner: %s with Rank %s"),
+						*WinnerPS->GetPlayerName(), *UEnum::GetValueAsString(Pair.Evaluate.Rank));
+			}
+		}
+	}
+	return Winners;
 }
 
 void AHoldemGameState::SpawnPlayerItem()
