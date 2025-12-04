@@ -162,9 +162,13 @@ UInteractableComponent* AMyPlayer::DetectInteractable()
 	// Hit 결과
 	FHitResult HitResult;
 
+	// Collision Query Params: 자기 자신 무시
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
 	// Ray trace 실행
 	bool bHit = GetWorld()->LineTraceSingleByChannel(
-		HitResult, TraceStart, TraceEnd, ECC_Visibility);
+		HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 	
 	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, bHit?FColor::Green : FColor::Red,
 		false, 0.1f, 0, 2.0f);
@@ -172,6 +176,10 @@ UInteractableComponent* AMyPlayer::DetectInteractable()
 	// Hit한 경우
 	if (bHit && HitResult.GetActor())
 	{
+		// 디버그: 어떤 액터가 Hit 되었는지 확인
+		UE_LOG(LogTemp, Warning, TEXT("[DetectInteractable] Hit Actor: %s at distance: %.2f"),
+			*HitResult.GetActor()->GetName(), HitResult.Distance);
+
 		// Actor에서 InteractableComponent 찾기
 		UInteractableComponent* InteractComp =
 			HitResult.GetActor()->FindComponentByClass<UInteractableComponent>();
