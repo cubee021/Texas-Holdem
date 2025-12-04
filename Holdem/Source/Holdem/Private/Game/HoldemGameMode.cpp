@@ -136,7 +136,9 @@ void AHoldemGameMode::StartPreFlop()
 		GS->DealPreflopToPlayers();
 		GS->SpawnPlayerItem();
 
-		StartFlop();
+		// Testing
+		GetWorldTimerManager().SetTimer(TestingTimer,
+			this, &AHoldemGameMode::StartFlop, PhaseDelay, false);
 	}
 }
 
@@ -147,6 +149,10 @@ void AHoldemGameMode::StartFlop()
 	{
 		ChangeGamePhase(EHoldemPhase::Flop);
 		GS->DealFlopCards();
+
+		// Testing
+		GetWorldTimerManager().SetTimer(TestingTimer,
+			this, &AHoldemGameMode::StartTurn, PhaseDelay, false);
 	}
 }
 
@@ -157,6 +163,10 @@ void AHoldemGameMode::StartTurn()
 	{
 		ChangeGamePhase(EHoldemPhase::Turn);
 		GS->DealTurnCard();
+
+		// Testing
+		GetWorldTimerManager().SetTimer(TestingTimer,
+			this, &AHoldemGameMode::StartRiver, PhaseDelay, false);
 	}
 }
 
@@ -167,6 +177,10 @@ void AHoldemGameMode::StartRiver()
 	{
 		ChangeGamePhase(EHoldemPhase::River);
 		GS->DealRiverCard();
+
+		// Testing
+		GetWorldTimerManager().SetTimer(TestingTimer,
+			this, &AHoldemGameMode::StartShowdown, PhaseDelay, false);
 	}
 }
 

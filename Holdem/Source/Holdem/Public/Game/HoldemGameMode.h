@@ -19,13 +19,21 @@ public:
 	AHoldemGameMode();
 
 protected:
+	//---------------------------------------------------//
+	// Login
+	//---------------------------------------------------//
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
+protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	
 public:
+	//---------------------------------------------------//
+	// Phase Management
+	//---------------------------------------------------//
+	
 	// Waiting - 10초 동안 플레이어 접속 대기
 	UFUNCTION(BlueprintCallable, Category = "GamePhase")
 	void StartWaiting();
@@ -58,4 +66,16 @@ public:
 protected:
 	// Change Phase helper : 상태 서버&클라이언트 일괄 변경
 	void ChangeGamePhase(EHoldemPhase NewState);
+
+protected:
+	//---------------------------------------------------//
+	// Test
+	//---------------------------------------------------//
+
+	// 자동 페이즈 진행용 타이머
+	UPROPERTY(EditDefaultsOnly, Category = "Test")
+	FTimerHandle TestingTimer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Test")
+	float PhaseDelay = 3.f;
 };
