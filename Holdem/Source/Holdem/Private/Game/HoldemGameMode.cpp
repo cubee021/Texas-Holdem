@@ -136,9 +136,12 @@ void AHoldemGameMode::StartPreFlop()
 		GS->DealPreflopToPlayers();
 		GS->SpawnPlayerItem();
 
+		// 베팅 시작
+		StartBettingRound();
+		
 		// Testing
-		GetWorldTimerManager().SetTimer(TestingTimer,
-			this, &AHoldemGameMode::StartFlop, PhaseDelay, false);
+		// GetWorldTimerManager().SetTimer(TestingTimer,
+		// 	this, &AHoldemGameMode::StartFlop, PhaseDelay, false);
 	}
 }
 
@@ -150,9 +153,11 @@ void AHoldemGameMode::StartFlop()
 		ChangeGamePhase(EHoldemPhase::Flop);
 		GS->DealFlopCards();
 
-		// Testing
-		GetWorldTimerManager().SetTimer(TestingTimer,
-			this, &AHoldemGameMode::StartTurn, PhaseDelay, false);
+		StartBettingRound();
+		
+		// // Testing
+		// GetWorldTimerManager().SetTimer(TestingTimer,
+		// 	this, &AHoldemGameMode::StartTurn, PhaseDelay, false);
 	}
 }
 
@@ -164,9 +169,11 @@ void AHoldemGameMode::StartTurn()
 		ChangeGamePhase(EHoldemPhase::Turn);
 		GS->DealTurnCard();
 
-		// Testing
-		GetWorldTimerManager().SetTimer(TestingTimer,
-			this, &AHoldemGameMode::StartRiver, PhaseDelay, false);
+		StartBettingRound();
+
+		// // Testing
+		// GetWorldTimerManager().SetTimer(TestingTimer,
+		// 	this, &AHoldemGameMode::StartRiver, PhaseDelay, false);
 	}
 }
 
@@ -178,9 +185,11 @@ void AHoldemGameMode::StartRiver()
 		ChangeGamePhase(EHoldemPhase::River);
 		GS->DealRiverCard();
 
-		// Testing
-		GetWorldTimerManager().SetTimer(TestingTimer,
-			this, &AHoldemGameMode::StartShowdown, PhaseDelay, false);
+		StartBettingRound();
+		
+		// // Testing
+		// GetWorldTimerManager().SetTimer(TestingTimer,
+		// 	this, &AHoldemGameMode::StartShowdown, PhaseDelay, false);
 	}
 }
 
@@ -253,4 +262,138 @@ void AHoldemGameMode::ChangeGamePhase(EHoldemPhase NewState)
 		GS->OnPhaseChanged.Broadcast(NewState);
 		GS->PreviousPhase = NewState;
 	}
+}
+
+void AHoldemGameMode::StartBettingRound()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (!GS) return;
+
+	// 모든 플레이어 플래그 리셋
+	for (APlayerState* PS : GS->PlayerArray)
+	{
+		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
+		if (Player)
+		{
+			Player->bHasActedThisRound = false;
+		}
+	}
+
+	// 첫번째 턴 플레이어 설정
+	// (임시로 0번부터 시작. 추후에 Dealer/Blind 적용 예정)
+	GS->CurrentTurnPlayerIndex = 0;
+
+	// Fold한 플레이어 스킵
+	while (GS->CurrentTurnPlayerIndex < GS->PlayerArray.Num())
+	{
+		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(
+			GS->PlayerArray[GS->CurrentTurnPlayerIndex]);
+
+		if (Player && !Player->bIsFolded) break;
+
+		GS->CurrentTurnPlayerIndex++;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[StartBettingRound] Betting round started. First player: %d"),
+			   GS->CurrentTurnPlayerIndex);
+}
+
+bool AHoldemGameMode::IsBettingRoundComplete()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (!GS) return false;
+
+	// ActivePlayer 카운트
+	int32 ActivePlayers = 0;
+	
+	for (APlayerState* PS : GS->PlayerArray)
+	{
+		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
+		if (Player && !Player->bIsFolded)
+		{
+			ActivePlayers++;
+
+			// 조건 1 : 액션하지 않은 플레이어 있으면
+			if (!Player->bHasActedThisRound) return false;
+			// 조건 2 : 베팅액이 최고액과 다르면 아직 안끝남
+			if (Player->CurrentBet != GS->CurrentMaxBet) return false;
+		}
+	}
+
+	// 1명만 남기고 모두 Fold한 경우, 라운드 종료
+	if (ActivePlayers <= 1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[IsBettingRoundComplete] Only 1 active player left!"));
+		return true;
+	}
+
+	// 모든 조건 만족 → 베팅 라운드 완료!
+	UE_LOG(LogTemp, Warning, TEXT("[IsBettingRoundComplete] Betting round complete!"));
+	return true;
+}
+
+void AHoldemGameMode::MoveToNextPlayer()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (!GS) return;
+
+	if (IsBettingRoundComplete())
+	{
+		GS->CollectBetsIntoPot();
+		GS->CurrentTurnPlayerIndex = -1;
+
+		// 다음 Phase로 전환
+		switch (GS->CurrentPhase)
+		{
+		case EHoldemPhase::PreFlop:
+			StartFlop();
+			break;
+
+		case EHoldemPhase::Flop:
+			StartTurn();
+			break;
+
+		case EHoldemPhase::Turn:
+			StartRiver();
+			break;
+
+		case EHoldemPhase::River:
+			StartShowdown();
+			break;
+
+		default:
+			UE_LOG(LogTemp, Warning, TEXT("[MoveToNextPlayer] Unknown phase!"));
+			break;
+		}
+
+		return;
+	}
+
+	// 다음 플레이어 찾기
+	int32 StartIndex = GS->CurrentTurnPlayerIndex;
+	int32 PlayerCount = GS->PlayerArray.Num();
+
+	do
+	{
+		// 다음 인덱스로 이동
+		GS->CurrentTurnPlayerIndex = (GS->CurrentTurnPlayerIndex + 1) % PlayerCount;
+
+		AHoldemPlayerState* NextPlayer = Cast<AHoldemPlayerState>(
+			GS->PlayerArray[GS->CurrentTurnPlayerIndex]);
+
+		// Fold하지 않은 플레이어 찾으면 종료
+		if (NextPlayer && !NextPlayer->bIsFolded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[MoveToNextPlayer] Next turn: Player %d (%s)"),
+								GS->CurrentTurnPlayerIndex, *NextPlayer->GetPlayerName());
+			return;
+		}
+
+		// 무한 루프 방지
+		if (GS->CurrentTurnPlayerIndex == StartIndex)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[MoveToNextPlayer] No valid player found!"));
+			return;
+		}
+	}while (true);
 }

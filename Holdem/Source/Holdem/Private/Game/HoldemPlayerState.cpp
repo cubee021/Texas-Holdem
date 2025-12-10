@@ -34,6 +34,9 @@ void AHoldemPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProper
 	DOREPLIFETIME(AHoldemPlayerState, Position);
 
 	DOREPLIFETIME(AHoldemPlayerState, CurrentChips);
+
+	DOREPLIFETIME(AHoldemPlayerState, CurrentBet);
+	DOREPLIFETIME(AHoldemPlayerState, TotalBet);
 }
 
 void AHoldemPlayerState::AddCard(ACard* Card)

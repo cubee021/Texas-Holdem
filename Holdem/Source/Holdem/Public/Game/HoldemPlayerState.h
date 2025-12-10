@@ -65,13 +65,13 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Game")
 	bool bIsFolded = false;
 
-	// 플레이어 포지션(베팅 때 구현)
+	// 플레이어 포지션
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Game")
 	EPlayerPosition Position;
 
 public:
 	//---------------------------------------------------//
-	// Chips (베팅때 구현 예정)
+	// Chips
 	//---------------------------------------------------//
 	// 현재 칩 개수
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Chips")
@@ -79,4 +79,19 @@ public:
 
 	// 올인 상태 체크
 	FORCEINLINE bool IsAllIn() const {return CurrentChips == 0 && !bIsFolded;}
+
+public:
+	//---------------------------------------------------//
+	// Betting
+	//---------------------------------------------------//
+	// Bet - 현재 라운드에 낼 금액
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Betting")
+	int32 CurrentBet = 0;
+	// Total Bet - 이번 판에 베팅한 총액
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Betting")
+	int32 TotalBet = 0;
+
+	// 이번 베팅에 액션했는지 (flag)
+	UPROPERTY(BlueprintReadOnly, Category = "Betting")
+	bool bHasActedThisRound = false;
 };

@@ -7,7 +7,9 @@
 #include "InputActionValue.h"
 #include "MyPlayer.h"
 #include "Components/InteractableComponent.h"
+#include "Game/HoldemGameMode.h"
 #include "Game/HoldemGameState.h"
+#include "Game/HoldemPlayerState.h"
 #include "UI/BarWidget.h"
 
 void AMyPlayerController::BeginPlay()
@@ -48,6 +50,10 @@ void AMyPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(RotateAction, ETriggerEvent::Triggered, this, &AMyPlayerController::RotateHoldingItem);
 
 		EnhancedInputComponent->BindAction(ItemAction, ETriggerEvent::Started, this, &AMyPlayerController::ShowItemWidget);
+
+		EnhancedInputComponent->BindAction(UpAction, ETriggerEvent::Started, this, &AMyPlayerController::OnBettingUp);
+		EnhancedInputComponent->BindAction(DownAction, ETriggerEvent::Started, this, &AMyPlayerController::OnBettingDown);
+		EnhancedInputComponent->BindAction(ConfirmAction, ETriggerEvent::Started, this, &AMyPlayerController::OnBettingConfirm);
 	}
 }
 
@@ -120,6 +126,163 @@ void AMyPlayerController::OnGamePhaseChanged(EHoldemPhase NewPhase)
 		UE_LOG(LogTemp, Warning, TEXT("[PlayerController] Close Widget"));
 		CloseItemWidget();
 	}
+}
+
+void AMyPlayerController::OnBettingUp(const FInputActionValue& Value)
+{
+	// 위로 이동
+	SelectedButtonIndex = (SelectedButtonIndex - 1 + 3)%3;
+
+	OnBettingSelectionChanged.Broadcast(SelectedButtonIndex);
+}
+
+void AMyPlayerController::OnBettingDown(const FInputActionValue& Value)
+{
+	// 아래로 이동
+	SelectedButtonIndex = (SelectedButtonIndex + 1)%3;
+
+	OnBettingSelectionChanged.Broadcast(SelectedButtonIndex);
+}
+
+void AMyPlayerController::OnBettingConfirm(const FInputActionValue& Value)
+{
+	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
+	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
+	if (!PS || !GS) return;
+	
+	// 현재 상황 판단                                                                                               
+	bool bNoBets = (GS->CurrentMaxBet == 0);
+	bool bCanCheck = (PS->CurrentBet == GS->CurrentMaxBet);
+
+	// 선택된 버튼에 따라 RPC 호출                                                                                                                                 
+	switch (SelectedButtonIndex)
+	{
+	case 0:  // Button 0: Raise or Bet                                                                                                                              
+		Server_Raise();
+		UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] Raise"));
+		break;
+
+	case 1:  // Button 1: Call or Check                                                                                                                             
+		if (bCanCheck)
+		{
+			Server_Check();
+			UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] Check"));
+		}
+		else                                                                                                                                                    
+		{
+			Server_Call();
+			UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] Call"));
+		}
+		break;
+
+	case 2:  // Button 2: Fold                                                                                                                                      
+		Server_Fold();
+		UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] Fold"));
+		break;
+	}
+}
+
+void AMyPlayerController::Server_Check_Implementation()
+{
+	AHoldemGameMode* GM = GetWorld()->GetAuthGameMode<AHoldemGameMode>();
+	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
+	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
+	if (!GM || !GS || !PS) return;
+
+	// 내 차례 아닐 경우
+	int32 MyIndex = GS->PlayerArray.Find(PS);
+	if (GS->CurrentTurnPlayerIndex != MyIndex)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Server_Check] Not your turn!"));
+		return;
+	}
+
+	// Check 가능한지 확인
+	if (PS->CurrentBet != GS->CurrentMaxBet)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Server_Check] Cannot check! Must Call or Fold."));
+		return;
+	}
+
+	// 체크 처리 후, 다음 플레이어로 이동
+	GS->ProcessCheck(PS);
+	GM->MoveToNextPlayer();
+}
+
+void AMyPlayerController::Server_Fold_Implementation()
+{
+	AHoldemGameMode* GM = GetWorld()->GetAuthGameMode<AHoldemGameMode>();
+	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
+	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
+	if (!GM || !GS || !PS) return;
+
+	// 내 차례 아닐 경우
+	int32 MyIndex = GS->PlayerArray.Find(PS);
+	if (GS->CurrentTurnPlayerIndex != MyIndex)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Server_Fold] Not your turn!"));
+		return;
+	}
+
+	// 폴드 처리 후, 다음 플레이어로 이동
+	GS->ProcessFold(PS);
+	GM->MoveToNextPlayer();
+}
+
+void AMyPlayerController::Server_Call_Implementation()
+{
+	AHoldemGameMode* GM = GetWorld()->GetAuthGameMode<AHoldemGameMode>();
+	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
+	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
+	if (!GM || !GS || !PS) return;
+
+	// 내 차례 아닐 경우
+	int32 MyIndex = GS->PlayerArray.Find(PS);
+	if (GS->CurrentTurnPlayerIndex != MyIndex)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Server_Call] Not your turn!"));
+		return;
+	}
+
+	// 충분한 칩이 있는지 확인
+	int32 CallAmount = GS->CurrentMaxBet - PS->CurrentBet;
+	if (PS->CurrentChips < CallAmount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Server_Call] Not enough chips!"));
+		return;
+	}
+
+	// 콜 처리 후, 다음 플레이어로 이동
+	GS->ProcessCall(PS);
+	GM->MoveToNextPlayer();
+}
+
+void AMyPlayerController::Server_Raise_Implementation()
+{
+	AHoldemGameMode* GM = GetWorld()->GetAuthGameMode<AHoldemGameMode>();
+	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
+	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
+	if (!GM || !GS || !PS) return;
+
+	// 내 차례 아닐 경우
+	int32 MyIndex = GS->PlayerArray.Find(PS);
+	if (GS->CurrentTurnPlayerIndex != MyIndex)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Server_Raise] Not your turn!"));
+		return;
+	}
+
+	// 충분한 칩이 있는지 확인
+	int32 RaiseAmount = GS->BigBlindAmount * 2;
+	if (PS->CurrentChips < RaiseAmount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Server_Raise] Not enough chips!"));
+		return;
+	}
+
+	// 레이즈 처리 후, 다음 플레이어로 이동
+	GS->ProcessRaise(PS);
+	GM->MoveToNextPlayer();
 }
 
 void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)

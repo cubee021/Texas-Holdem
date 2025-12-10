@@ -31,7 +31,7 @@ protected:
 	
 public:
 	//---------------------------------------------------//
-	// Phase Management
+	// Holdem Phase Management
 	//---------------------------------------------------//
 	
 	// Waiting - 10초 동안 플레이어 접속 대기
@@ -66,6 +66,18 @@ public:
 protected:
 	// Change Phase helper : 상태 서버&클라이언트 일괄 변경
 	void ChangeGamePhase(EHoldemPhase NewState);
+
+public:
+	//---------------------------------------------------//
+	// Betting Phase Management
+	//---------------------------------------------------//
+
+	// 베팅 라운드 시작
+	void StartBettingRound();
+	// 베팅 라운드 종료 조건 체크
+	bool IsBettingRoundComplete();
+	// 다음 플레이어로 턴 이동
+	void MoveToNextPlayer();
 
 protected:
 	//---------------------------------------------------//

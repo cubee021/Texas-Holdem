@@ -9,6 +9,8 @@
 /**
  *
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBettingSelectionChanged, int32, SelectedIndex);
+
 UCLASS()
 class HOLDEM_API AMyPlayerController : public APlayerController
 {
@@ -24,6 +26,10 @@ public:
 	class UInputMappingContext* InputMappingContext;
 
 protected:
+	//---------------------------------------------------//
+	// Basic Input
+	//---------------------------------------------------//
+	
 	// Look
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* LookAction;
@@ -74,7 +80,55 @@ protected:
 	void OnGamePhaseChanged(EHoldemPhase NewPhase);
 
 protected:
-	// Item (더 정리하려면 PlayerSubsystem으로 빼야 할 듯)
+	//---------------------------------------------------//
+	// Betting Input
+	//---------------------------------------------------//
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* UpAction; // W키
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* DownAction; // S키
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* ConfirmAction; // E키
+	
+	UFUNCTION()
+	void OnBettingUp(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void OnBettingDown(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void OnBettingConfirm(const FInputActionValue& Value);
+
+	// 현재 선택된 버튼 인덱스 (0, 1, 2)
+	int32 SelectedButtonIndex = 1;
+	
+public:
+	// 델리게이트: 버튼 선택 변경 시 UI에 알림
+	UPROPERTY(BlueprintAssignable)
+	FOnBettingSelectionChanged OnBettingSelectionChanged;
+
+public:
+	//---------------------------------------------------//
+	// Betting RPC
+	//---------------------------------------------------//
+	UFUNCTION(Server, Reliable)
+	void Server_Fold();
+
+	UFUNCTION(Server, Reliable)
+	void Server_Check();
+
+	UFUNCTION(Server, Reliable)
+	void Server_Call();
+
+	UFUNCTION(Server, Reliable)
+	void Server_Raise();
+	
+protected:
+	//---------------------------------------------------//
+	// Item
+	//---------------------------------------------------//
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* ItemAction;
 	

@@ -194,6 +194,41 @@ public:
 
 public:
 	//---------------------------------------------------//
+	// Betting
+	//---------------------------------------------------//
+	// 총 팟 금액
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Betting")
+	int32 TotalPot = 0;
+	// 최고 베팅액
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Betting")
+	int32 CurrentMaxBet = 0;
+	
+	// 블라인드 설정
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
+	int32 SmallBlindAmount = 10;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
+	int32 BigBlindAmount = 20;
+	// 테이블 입장/유지 최소 칩
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
+	int32 MinimumChips = 100;
+
+public:
+	// 현재 턴 플레이어 인덱스 (-1 : 베팅중 아님)
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Betting")
+	int32 CurrentTurnPlayerIndex = -1;
+	
+	// 베팅 액션
+	void ProcessFold(class AHoldemPlayerState* Player);
+	void ProcessCheck(class AHoldemPlayerState* Player);
+	void ProcessCall(class AHoldemPlayerState* Player);
+	void ProcessRaise(class AHoldemPlayerState* Player);
+
+	// 베팅 라운드 종료 시 팟에 합산
+	void CollectBetsIntoPot();
+	
+public:
+	//---------------------------------------------------//
 	// Item
 	//---------------------------------------------------//
 	UPROPERTY(EditDefaultsOnly, Category = "Item")

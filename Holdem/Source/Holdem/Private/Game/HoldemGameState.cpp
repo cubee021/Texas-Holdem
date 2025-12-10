@@ -35,6 +35,10 @@ void AHoldemGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AHoldemGameState, CommunityCards);
 	DOREPLIFETIME(AHoldemGameState, WaitingTimeRemaining);
 	DOREPLIFETIME(AHoldemGameState, bIsLookDisabled);
+
+	DOREPLIFETIME(AHoldemGameState, TotalPot);
+	DOREPLIFETIME(AHoldemGameState, CurrentMaxBet);
+	DOREPLIFETIME(AHoldemGameState, CurrentTurnPlayerIndex);
 }
 
 void AHoldemGameState::GenerateDeck()
@@ -306,6 +310,90 @@ TArray<APlayerState*> AHoldemGameState::DetermineWinner(const TArray<APlayerStat
 		}
 	}
 	return Winners;
+}
+
+void AHoldemGameState::ProcessFold(AHoldemPlayerState* Player)
+{
+	if (!HasAuthority() || !Player) return;
+
+	Player->bIsFolded = true;
+	Player->bHasActedThisRound = true;
+
+	UE_LOG(LogTemp, Warning, TEXT("[Betting Log] %s folded"), *Player->GetPlayerName());
+}
+
+void AHoldemGameState::ProcessCheck(AHoldemPlayerState* Player)
+{
+	if (!HasAuthority() || !Player) return;
+
+	Player->bHasActedThisRound = true;
+
+	UE_LOG(LogTemp, Warning, TEXT("[Betting Log] %s checked"), *Player->GetPlayerName());
+}
+
+void AHoldemGameState::ProcessCall(AHoldemPlayerState* Player)
+{
+	if (!HasAuthority() || !Player) return;
+	// 추가로 내야 할 금액
+	int32 CallAmount = CurrentMaxBet - Player->CurrentBet;
+
+	Player->CurrentChips -= CallAmount;
+	Player->CurrentBet = CurrentMaxBet;
+	Player->bHasActedThisRound = true;
+
+	UE_LOG(LogTemp, Warning, TEXT("[Betting Log] %s called %d (Total bet : %d)"),
+		*Player->GetPlayerName(), CallAmount, Player->CurrentBet);
+}
+
+void AHoldemGameState::ProcessRaise(AHoldemPlayerState* Player)
+{
+	if (!HasAuthority() || !Player) return;
+
+	// Raise 금액 (고정)
+	int32 RaiseAmount = BigBlindAmount * 2;
+	
+	Player->CurrentChips -= RaiseAmount;
+	Player->CurrentBet += RaiseAmount;
+	Player->bHasActedThisRound = true;
+
+	// 새로운 최고 베팅액 설정
+	CurrentMaxBet = Player->CurrentBet;
+
+	// 한 턴 더 돌기
+	for (APlayerState* PS : PlayerArray)
+	{
+		AHoldemPlayerState* HPS = Cast<AHoldemPlayerState>(PS);
+		if (HPS && HPS != Player && !HPS->bIsFolded)
+		{
+			HPS->bHasActedThisRound = false;
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[Betting Log] %s raised %d (Max new bet : %d)"),
+		*Player->GetPlayerName(), RaiseAmount, CurrentMaxBet);
+}
+
+void AHoldemGameState::CollectBetsIntoPot()
+{
+	if (!HasAuthority()) return;
+
+	for (APlayerState* PS : PlayerArray)
+	{
+		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
+		if (Player)
+		{
+			// 플레이어별 이번 판 베팅액을 팟에 합산
+			TotalPot += Player->CurrentBet;
+			// 플레이어별 TotalBet에 누적
+			Player->TotalBet += Player->CurrentBet;
+			// CurrentBet 리셋
+			Player->CurrentBet = 0;
+			// 플래그 리셋
+			Player->bHasActedThisRound = false;
+		}
+	}
+
+	CurrentMaxBet = 0;
 }
 
 void AHoldemGameState::SpawnPlayerItem()
