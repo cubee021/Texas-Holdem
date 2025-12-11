@@ -44,6 +44,7 @@ struct FPlayerHandPair
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, EHoldemPhase, NewPhase);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTurnChanged, int32, NewTurnIndex);
 
 UCLASS()
 class HOLDEM_API AHoldemGameState : public AGameStateBase
@@ -215,8 +216,15 @@ public:
 
 public:
 	// 현재 턴 플레이어 인덱스 (-1 : 베팅중 아님)
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Betting")
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentTurnPlayerIndex, BlueprintReadOnly, Category = "Betting")
 	int32 CurrentTurnPlayerIndex = -1;
+
+	UFUNCTION()
+	void OnRep_CurrentTurnPlayerIndex();
+
+	// 베팅 플레이어 전환 시 호출되는 deligate
+	UPROPERTY(BlueprintAssignable, Category = "Betting")
+	FOnTurnChanged OnTurnChanged;
 	
 	// 베팅 액션
 	void ProcessFold(class AHoldemPlayerState* Player);

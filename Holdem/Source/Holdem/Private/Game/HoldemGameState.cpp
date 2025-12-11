@@ -312,6 +312,11 @@ TArray<APlayerState*> AHoldemGameState::DetermineWinner(const TArray<APlayerStat
 	return Winners;
 }
 
+void AHoldemGameState::OnRep_CurrentTurnPlayerIndex()
+{
+	OnTurnChanged.Broadcast(CurrentTurnPlayerIndex);
+}
+
 void AHoldemGameState::ProcessFold(AHoldemPlayerState* Player)
 {
 	if (!HasAuthority() || !Player) return;

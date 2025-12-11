@@ -296,6 +296,8 @@ void AHoldemGameMode::StartBettingRound()
 
 	UE_LOG(LogTemp, Warning, TEXT("[StartBettingRound] Betting round started. First player: %d"),
 			   GS->CurrentTurnPlayerIndex);
+
+	GS->OnTurnChanged.Broadcast(GS->CurrentTurnPlayerIndex);
 }
 
 bool AHoldemGameMode::IsBettingRoundComplete()
@@ -341,7 +343,9 @@ void AHoldemGameMode::MoveToNextPlayer()
 	{
 		GS->CollectBetsIntoPot();
 		GS->CurrentTurnPlayerIndex = -1;
-
+		//
+		GS->OnTurnChanged.Broadcast(-1);
+		
 		// 다음 Phase로 전환
 		switch (GS->CurrentPhase)
 		{
@@ -386,6 +390,9 @@ void AHoldemGameMode::MoveToNextPlayer()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[MoveToNextPlayer] Next turn: Player %d (%s)"),
 								GS->CurrentTurnPlayerIndex, *NextPlayer->GetPlayerName());
+
+			GS->OnTurnChanged.Broadcast(GS->CurrentTurnPlayerIndex);
+			
 			return;
 		}
 

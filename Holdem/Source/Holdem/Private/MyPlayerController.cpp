@@ -184,18 +184,12 @@ void AMyPlayerController::OnBettingConfirm(const FInputActionValue& Value)
 
 void AMyPlayerController::Server_Check_Implementation()
 {
+	if (!IsMyTurn()) return;
+	
 	AHoldemGameMode* GM = GetWorld()->GetAuthGameMode<AHoldemGameMode>();
 	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
 	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
 	if (!GM || !GS || !PS) return;
-
-	// 내 차례 아닐 경우
-	int32 MyIndex = GS->PlayerArray.Find(PS);
-	if (GS->CurrentTurnPlayerIndex != MyIndex)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Server_Check] Not your turn!"));
-		return;
-	}
 
 	// Check 가능한지 확인
 	if (PS->CurrentBet != GS->CurrentMaxBet)
@@ -211,18 +205,12 @@ void AMyPlayerController::Server_Check_Implementation()
 
 void AMyPlayerController::Server_Fold_Implementation()
 {
+	if (!IsMyTurn()) return;
+	
 	AHoldemGameMode* GM = GetWorld()->GetAuthGameMode<AHoldemGameMode>();
 	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
 	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
 	if (!GM || !GS || !PS) return;
-
-	// 내 차례 아닐 경우
-	int32 MyIndex = GS->PlayerArray.Find(PS);
-	if (GS->CurrentTurnPlayerIndex != MyIndex)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Server_Fold] Not your turn!"));
-		return;
-	}
 
 	// 폴드 처리 후, 다음 플레이어로 이동
 	GS->ProcessFold(PS);
@@ -231,18 +219,12 @@ void AMyPlayerController::Server_Fold_Implementation()
 
 void AMyPlayerController::Server_Call_Implementation()
 {
+	if (!IsMyTurn()) return;
+	
 	AHoldemGameMode* GM = GetWorld()->GetAuthGameMode<AHoldemGameMode>();
 	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
 	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
 	if (!GM || !GS || !PS) return;
-
-	// 내 차례 아닐 경우
-	int32 MyIndex = GS->PlayerArray.Find(PS);
-	if (GS->CurrentTurnPlayerIndex != MyIndex)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Server_Call] Not your turn!"));
-		return;
-	}
 
 	// 충분한 칩이 있는지 확인
 	int32 CallAmount = GS->CurrentMaxBet - PS->CurrentBet;
@@ -259,19 +241,13 @@ void AMyPlayerController::Server_Call_Implementation()
 
 void AMyPlayerController::Server_Raise_Implementation()
 {
+	if (!IsMyTurn()) return;
+	
 	AHoldemGameMode* GM = GetWorld()->GetAuthGameMode<AHoldemGameMode>();
 	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
 	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
 	if (!GM || !GS || !PS) return;
-
-	// 내 차례 아닐 경우
-	int32 MyIndex = GS->PlayerArray.Find(PS);
-	if (GS->CurrentTurnPlayerIndex != MyIndex)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Server_Raise] Not your turn!"));
-		return;
-	}
-
+	
 	// 충분한 칩이 있는지 확인
 	int32 RaiseAmount = GS->BigBlindAmount * 2;
 	if (PS->CurrentChips < RaiseAmount)
@@ -283,6 +259,18 @@ void AMyPlayerController::Server_Raise_Implementation()
 	// 레이즈 처리 후, 다음 플레이어로 이동
 	GS->ProcessRaise(PS);
 	GM->MoveToNextPlayer();
+}
+
+bool AMyPlayerController::IsMyTurn() const
+{
+	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
+	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
+	if (!GS || !PS) return false;
+
+	int32 MyIndex = GS->PlayerArray.Find(PS);
+	if (MyIndex == INDEX_NONE) return false;
+	
+	return GS->CurrentTurnPlayerIndex == MyIndex;
 }
 
 void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)

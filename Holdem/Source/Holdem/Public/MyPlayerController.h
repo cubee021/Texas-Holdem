@@ -124,6 +124,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void Server_Raise();
+
+	// 현재 내 차례인지 체크
+	bool IsMyTurn() const;
 	
 protected:
 	//---------------------------------------------------//

@@ -56,9 +56,18 @@ public:
 	UPROPERTY(Meta = (BindWidget))
 	class UTextBlock* Txt_2;
 
+	// 선택한 버튼 색깔 변경
 	UFUNCTION()
 	void OnBettingSelectionChanged(int32 SelectedIndex);
 
 	UFUNCTION(BlueprintCallable)
+	void UpdateBettingUIVisibility();
+	
+	UFUNCTION(BlueprintCallable)
 	void UpdateButtonTexts();
+
+	// 턴 변경 이벤트 핸들러
+	// (플레이어 베팅 턴 바뀔 때마다 호출)
+	UFUNCTION()
+	void OnTurnChangedHandler(int32 NewTurnIndex);
 };
