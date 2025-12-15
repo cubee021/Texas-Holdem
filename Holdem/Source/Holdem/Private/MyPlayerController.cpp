@@ -140,12 +140,23 @@ void AMyPlayerController::OnBettingDown(const FInputActionValue& Value)
 {
 	// 아래로 이동
 	SelectedButtonIndex = (SelectedButtonIndex + 1)%3;
-
+	
 	OnBettingSelectionChanged.Broadcast(SelectedButtonIndex);
 }
 
 void AMyPlayerController::OnBettingConfirm(const FInputActionValue& Value)
 {
+	// 중복 입력 방지 (0.2초 쿨다운) ---------------------------------//
+	// float CurrentTime = GetWorld()->GetTimeSeconds();
+	//
+	// if (CurrentTime - LastConfirmTime < 0.2f)
+	// {
+	// 	//UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] Blocked duplicate input!"));
+	// 	return;
+	// }
+	// LastConfirmTime = CurrentTime;
+	//------------------------------------------------------------//
+	
 	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
 	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
 	if (!PS || !GS) return;
@@ -159,25 +170,33 @@ void AMyPlayerController::OnBettingConfirm(const FInputActionValue& Value)
 	{
 	case 0:  // Button 0: Raise or Bet                                                                                                                              
 		Server_Raise();
-		UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] Raise"));
+		if (bNoBets)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] %s pressed Bet (Button 0)"), *PS->GetPlayerName());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] %s pressed Raise (Button 0)"), *PS->GetPlayerName());
+		}
+		
 		break;
 
 	case 1:  // Button 1: Call or Check                                                                                                                             
 		if (bCanCheck)
 		{
 			Server_Check();
-			UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] Check"));
+			UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] %s pressed Check (Button 1)"), *PS->GetPlayerName());
 		}
 		else                                                                                                                                                    
 		{
 			Server_Call();
-			UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] Call"));
+			UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] %s pressed Call (Button 1)"), *PS->GetPlayerName());
 		}
 		break;
 
 	case 2:  // Button 2: Fold                                                                                                                                      
 		Server_Fold();
-		UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] Fold"));
+		UE_LOG(LogTemp, Warning, TEXT("[OnBettingConfirm] %s pressed Fold (Button 2)"), *PS->GetPlayerName());
 		break;
 	}
 }
@@ -247,10 +266,20 @@ void AMyPlayerController::Server_Raise_Implementation()
 	AHoldemGameState* GS = GetWorld()->GetGameState<AHoldemGameState>();
 	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
 	if (!GM || !GS || !PS) return;
+
+	// Fixed Limit : 현재 Phase에 따른 베팅 단위
+	// PreFlop/Flop -> 5 , Turn/River -> 10
+	int32 BettingUnit = (GS->CurrentPhase == EHoldemPhase::Turn ||
+						GS->CurrentPhase == EHoldemPhase::River)
+						? GS->BigBetAmount : GS->SmallBetAmount;
+
+	// Raise 후 새로운 MaxBet 계산
+	int32 NewMaxBet = GS->CurrentMaxBet + BettingUnit;
+	// 내가 추가로 내야할 금액
+	int32 AdditionalAmount = NewMaxBet - PS->CurrentBet;
 	
 	// 충분한 칩이 있는지 확인
-	int32 RaiseAmount = GS->BigBlindAmount * 2;
-	if (PS->CurrentChips < RaiseAmount)
+	if (PS->CurrentChips < AdditionalAmount)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Server_Raise] Not enough chips!"));
 		return;

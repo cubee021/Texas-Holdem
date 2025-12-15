@@ -204,12 +204,20 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Betting")
 	int32 CurrentMaxBet = 0;
 	
-	// 블라인드 설정
+	// 블라인드 설정 (Fixed Limit 5/10)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
-	int32 SmallBlindAmount = 10;
+	int32 SmallBlindAmount = 2;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
-	int32 BigBlindAmount = 20;
+	int32 BigBlindAmount = 5;
+
+	// PreFlop, Flop call amount
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
+	int32 SmallBetAmount = 5;
+	// Turn, River call amount
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
+	int32 BigBetAmount = 10;
+
 	// 테이블 입장/유지 최소 칩
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
 	int32 MinimumChips = 100;

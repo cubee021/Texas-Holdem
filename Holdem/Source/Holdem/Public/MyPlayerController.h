@@ -101,8 +101,12 @@ protected:
 	UFUNCTION()
 	void OnBettingConfirm(const FInputActionValue& Value);
 
+public:
 	// 현재 선택된 버튼 인덱스 (0, 1, 2)
 	int32 SelectedButtonIndex = 1;
+
+	// 중복 입력 방지용 타이머
+	float LastConfirmTime = 0.f;
 	
 public:
 	// 델리게이트: 버튼 선택 변경 시 UI에 알림

@@ -55,6 +55,11 @@ void UMyPlayerWidget::UpdateButtonTexts()
 	AHoldemPlayerState* PS = GetOwningPlayerState<AHoldemPlayerState>();
 	if (!PS || !GS) return;
 
+	// Fixed Limit : 현재 Phase에 따른 베팅 단위
+	int32 BettingUnit = (GS->CurrentPhase == EHoldemPhase::Turn ||
+						GS->CurrentPhase == EHoldemPhase::River)
+						? GS->BigBetAmount : GS->SmallBetAmount;
+	
 	// 베팅 상황 체크
 	bool bNoBets = (GS->CurrentMaxBet == 0);
 	bool bCanCheck = (PS->CurrentBet == GS->CurrentMaxBet);
@@ -63,16 +68,17 @@ void UMyPlayerWidget::UpdateButtonTexts()
 	// Button 0: Raise of Bet
 	if (bNoBets)
 	{
-		// 아무도 베팅 안했으면 "Bet"
-		FString BetText = FString::Printf(TEXT("Bet %d"), GS->BigBlindAmount);
+		// 아무도 베팅 안했으면 "Bet" (Flop/Turn/River에서만 가능)  
+		FString BetText = FString::Printf(TEXT("Bet %d"), BettingUnit);
 		Txt_0->SetText(FText::FromString(BetText));
 	}
 	else
 	{
 		// 누군가 베팅 했으면 "Raise"
-		int32 RaiseAmount = GS->BigBlindAmount * 2;
-		FString BetText = FString::Printf(TEXT("Raise %d"), RaiseAmount);
-		Txt_0->SetText(FText::FromString(BetText));
+		int32 NewMaxBet = GS->CurrentMaxBet + BettingUnit;
+		int32 RaiseAdditional = NewMaxBet - PS->CurrentBet;
+		FString RaiseText = FString::Printf(TEXT("Raise %d"), RaiseAdditional);
+		Txt_0->SetText(FText::FromString(RaiseText));
 	}
 
 	// Button 1: Call or Check
@@ -98,6 +104,9 @@ void UMyPlayerWidget::OnTurnChangedHandler(int32 NewTurnIndex)
 	AMyPlayerController* PC = Cast<AMyPlayerController>(GetOwningPlayer());
 	if (PC && PC->IsMyTurn())
 	{
+		// ✅ PlayerController의 SelectedButtonIndex를 1로 리셋!
+		PC->SelectedButtonIndex = 1;
+		
 		OnBettingSelectionChanged(1);
 		UpdateButtonTexts();
 	}

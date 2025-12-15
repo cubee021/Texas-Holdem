@@ -136,6 +136,32 @@ void AHoldemGameMode::StartPreFlop()
 		GS->DealPreflopToPlayers();
 		GS->SpawnPlayerItem();
 
+		// Blind 자동 베팅
+		// TODO: Dealer 포지션 시스템 구현 후 수정 필요
+		// 현재는 임시로 0번 = Small Blind, 1번 = Big Blind
+		if (GS->PlayerArray.Num() >= 2)
+		{
+			// Small Blind (0번 플레이어)
+			if (AHoldemPlayerState* SB = Cast<AHoldemPlayerState>(GS->PlayerArray[0]))
+			{
+				SB->CurrentChips -= GS->SmallBlindAmount;
+				SB->CurrentBet = GS->SmallBlindAmount;
+				GS->CurrentMaxBet = GS->SmallBlindAmount;
+				UE_LOG(LogTemp, Warning, TEXT("[Blind] %s posted Small Blind: %d"),
+					*SB->GetPlayerName(), GS->SmallBlindAmount);
+			}
+
+			// Big Blind (1번 플레이어)
+			if (AHoldemPlayerState* BB = Cast<AHoldemPlayerState>(GS->PlayerArray[1]))
+			{
+				BB->CurrentChips -= GS->BigBlindAmount;
+				BB->CurrentBet = GS->BigBlindAmount;
+				GS->CurrentMaxBet = GS->BigBlindAmount;
+				UE_LOG(LogTemp, Warning, TEXT("[Blind] %s posted Big Blind: %d"),
+					*BB->GetPlayerName(), GS->BigBlindAmount);
+			}
+		}
+		
 		// 베팅 시작
 		StartBettingRound();
 		

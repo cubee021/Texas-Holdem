@@ -354,15 +354,23 @@ void AHoldemGameState::ProcessRaise(AHoldemPlayerState* Player)
 {
 	if (!HasAuthority() || !Player) return;
 
-	// Raise 금액 (고정)
-	int32 RaiseAmount = BigBlindAmount * 2;
-	
-	Player->CurrentChips -= RaiseAmount;
-	Player->CurrentBet += RaiseAmount;
+	// Fixed Limit : 현재 Phase에 따른 베팅 단위
+	// PreFlop/Flop -> 5 , Turn/River -> 10
+	int32 BettingUnit = (CurrentPhase == EHoldemPhase::Turn ||
+						CurrentPhase == EHoldemPhase::River)
+						? BigBetAmount : SmallBetAmount;
+
+	// Raise 후 새로운 MaxBet 계산
+	int32 NewMaxBet = CurrentMaxBet + BettingUnit;
+	// 내가 추가로 내야할 금액
+	int32 AdditionalAmount = NewMaxBet - Player->CurrentBet;
+
+	Player->CurrentChips -= AdditionalAmount;
+	Player->CurrentBet = NewMaxBet;
 	Player->bHasActedThisRound = true;
 
 	// 새로운 최고 베팅액 설정
-	CurrentMaxBet = Player->CurrentBet;
+	CurrentMaxBet = NewMaxBet;
 
 	// 한 턴 더 돌기
 	for (APlayerState* PS : PlayerArray)
@@ -374,8 +382,8 @@ void AHoldemGameState::ProcessRaise(AHoldemPlayerState* Player)
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[Betting Log] %s raised %d (Max new bet : %d)"),
-		*Player->GetPlayerName(), RaiseAmount, CurrentMaxBet);
+	UE_LOG(LogTemp, Warning, TEXT("[Betting Log] %s raised by %d (Total bet: %d, Max bet: %d)"),
+				*Player->GetPlayerName(), AdditionalAmount, Player->CurrentBet, CurrentMaxBet);
 }
 
 void AHoldemGameState::CollectBetsIntoPot()
