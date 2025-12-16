@@ -81,13 +81,9 @@ public:
 
 protected:
 	//---------------------------------------------------//
-	// Test
+	// Testing
 	//---------------------------------------------------//
+	FTimerHandle NextRoundTimerHandle;
 
-	// 자동 페이즈 진행용 타이머
-	UPROPERTY(EditDefaultsOnly, Category = "Test")
-	FTimerHandle TestingTimer;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Test")
-	float PhaseDelay = 3.f;
+	void PrepareNextRound();
 };

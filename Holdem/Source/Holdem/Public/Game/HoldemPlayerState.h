@@ -30,6 +30,14 @@ public:
 	AHoldemPlayerState();
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+public:
+	//---------------------------------------------------//
+	// Player Info
+	//---------------------------------------------------//
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
+	int32 SeatIndex = -1;
 	
 public:
 	//---------------------------------------------------//

@@ -21,11 +21,20 @@ AHoldemGameMode::AHoldemGameMode()
 void AHoldemGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
-
-	// 플레이어 수 확인
+	
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
 	if (GS)
 	{
+		// SeatIndex 할당
+		// PlayerArray 인덱스는 클라이언트별로 달라질 수 있음 -> 일관성 있게 맞추기
+		if (AHoldemPlayerState* PS = NewPlayer->GetPlayerState<AHoldemPlayerState>())
+		{
+			PS->SeatIndex = GS->PlayerArray.Find(PS);
+			UE_LOG(LogTemp, Warning, TEXT("[PostLogin] %s assigned SeatIndex: %d"),
+								*PS->GetPlayerName(), PS->SeatIndex);
+		}
+		
+		// 플레이어 수 확인
 		int32 PlayerCount = GS->GetPlayerCount();
 		UE_LOG(LogTemp, Log, TEXT("Player connected! Total players: %d/%d"), PlayerCount, GS->MaxPlayers);
 		UE_LOG(LogTemp, Log, TEXT("Player Name: %s"), *NewPlayer->GetName());
@@ -137,37 +146,40 @@ void AHoldemGameMode::StartPreFlop()
 		GS->SpawnPlayerItem();
 
 		// Blind 자동 베팅
-		// TODO: Dealer 포지션 시스템 구현 후 수정 필요
-		// 현재는 임시로 0번 = Small Blind, 1번 = Big Blind
 		if (GS->PlayerArray.Num() >= 2)
 		{
-			// Small Blind (0번 플레이어)
-			if (AHoldemPlayerState* SB = Cast<AHoldemPlayerState>(GS->PlayerArray[0]))
+			int32 SBIndex = GS->GetSmallBlindIndex();
+			int32 BBIndex = GS->GetBigBlindIndex();
+
+			// Small Blind
+			if (SBIndex >= 0 && SBIndex < GS->PlayerArray.Num())
 			{
-				SB->CurrentChips -= GS->SmallBlindAmount;
-				SB->CurrentBet = GS->SmallBlindAmount;
-				GS->CurrentMaxBet = GS->SmallBlindAmount;
-				UE_LOG(LogTemp, Warning, TEXT("[Blind] %s posted Small Blind: %d"),
-					*SB->GetPlayerName(), GS->SmallBlindAmount);
+				if (AHoldemPlayerState* SB = Cast<AHoldemPlayerState>(GS->PlayerArray[SBIndex]))
+				{
+					SB->CurrentChips -= GS->SmallBlindAmount;
+					SB->CurrentBet = GS->SmallBlindAmount;
+					GS->CurrentMaxBet = GS->SmallBlindAmount;
+					UE_LOG(LogTemp, Warning, TEXT("[Blind] %s posted Small Blind: %d"),
+						*SB->GetPlayerName(), GS->SmallBlindAmount);
+				}
 			}
 
-			// Big Blind (1번 플레이어)
-			if (AHoldemPlayerState* BB = Cast<AHoldemPlayerState>(GS->PlayerArray[1]))
+			// Big Blind
+			if (BBIndex >= 0 && BBIndex < GS->PlayerArray.Num())
 			{
-				BB->CurrentChips -= GS->BigBlindAmount;
-				BB->CurrentBet = GS->BigBlindAmount;
-				GS->CurrentMaxBet = GS->BigBlindAmount;
-				UE_LOG(LogTemp, Warning, TEXT("[Blind] %s posted Big Blind: %d"),
-					*BB->GetPlayerName(), GS->BigBlindAmount);
+				if (AHoldemPlayerState* BB = Cast<AHoldemPlayerState>(GS->PlayerArray[BBIndex]))
+				{
+					BB->CurrentChips -= GS->BigBlindAmount;
+					BB->CurrentBet = GS->BigBlindAmount;
+					GS->CurrentMaxBet = GS->BigBlindAmount;
+					UE_LOG(LogTemp, Warning, TEXT("[Blind] %s posted Big Blind: %d"),
+						*BB->GetPlayerName(), GS->BigBlindAmount);
+				}
 			}
 		}
 		
 		// 베팅 시작
 		StartBettingRound();
-		
-		// Testing
-		// GetWorldTimerManager().SetTimer(TestingTimer,
-		// 	this, &AHoldemGameMode::StartFlop, PhaseDelay, false);
 	}
 }
 
@@ -180,10 +192,6 @@ void AHoldemGameMode::StartFlop()
 		GS->DealFlopCards();
 
 		StartBettingRound();
-		
-		// // Testing
-		// GetWorldTimerManager().SetTimer(TestingTimer,
-		// 	this, &AHoldemGameMode::StartTurn, PhaseDelay, false);
 	}
 }
 
@@ -196,10 +204,6 @@ void AHoldemGameMode::StartTurn()
 		GS->DealTurnCard();
 
 		StartBettingRound();
-
-		// // Testing
-		// GetWorldTimerManager().SetTimer(TestingTimer,
-		// 	this, &AHoldemGameMode::StartRiver, PhaseDelay, false);
 	}
 }
 
@@ -212,10 +216,6 @@ void AHoldemGameMode::StartRiver()
 		GS->DealRiverCard();
 
 		StartBettingRound();
-		
-		// // Testing
-		// GetWorldTimerManager().SetTimer(TestingTimer,
-		// 	this, &AHoldemGameMode::StartShowdown, PhaseDelay, false);
 	}
 }
 
@@ -271,6 +271,16 @@ void AHoldemGameMode::StartShowdown()
 		{
 			UE_LOG(LogTemp, Error, TEXT("[StartShowdown] No winners found!"));
 		}
+
+		// Testing
+		// Dealer 포지션 회전
+		GS->RotateDealer();
+
+		// TODO: 승자에게 칩 분배
+
+		// 일정시간 후, 다음 판 시작
+		GetWorldTimerManager().SetTimer(NextRoundTimerHandle, this,
+			&AHoldemGameMode::PrepareNextRound, 3.0f, false);
 	}
 }
 
@@ -429,4 +439,36 @@ void AHoldemGameMode::MoveToNextPlayer()
 			return;
 		}
 	}while (true);
+}
+
+void AHoldemGameMode::PrepareNextRound()
+{
+	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
+	if (!GS) return;
+
+	// 모든 플레이어 상태 리셋
+	for (APlayerState* PS : GS->PlayerArray)
+	{
+		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
+		if (Player)
+		{
+			Player->bIsFolded = false;
+			Player->bHasActedThisRound = false;
+			Player->CurrentBet = 0;
+			Player->TotalBet = 0;
+			Player->ClearHand();
+		}
+	}
+
+	// GameState 리셋
+	GS->TotalPot = 0;
+	GS->CurrentMaxBet = 0;
+	GS->CurrentTurnPlayerIndex = -1;
+	GS->CommunityCards.Empty();
+	GS->Deck.Empty();
+
+	// 카드들 정리 (TODO: 카드 Destroy 또는 풀로 반환)
+
+	// 다음 판 시작
+	StartPreFlop();
 }

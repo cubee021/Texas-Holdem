@@ -296,10 +296,12 @@ bool AMyPlayerController::IsMyTurn() const
 	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
 	if (!GS || !PS) return false;
 
-	int32 MyIndex = GS->PlayerArray.Find(PS);
-	if (MyIndex == INDEX_NONE) return false;
+	return GS->CurrentTurnPlayerIndex == PS->SeatIndex;
 	
-	return GS->CurrentTurnPlayerIndex == MyIndex;
+	// int32 MyIndex = GS->PlayerArray.Find(PS);
+	// if (MyIndex == INDEX_NONE) return false;
+	//
+	// return GS->CurrentTurnPlayerIndex == MyIndex;
 }
 
 void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)

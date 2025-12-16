@@ -242,6 +242,27 @@ public:
 
 	// 베팅 라운드 종료 시 팟에 합산
 	void CollectBetsIntoPot();
+
+public:
+	//---------------------------------------------------//
+	// Dealer Position
+	//---------------------------------------------------//
+	// Dealer Position
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Betting")
+	int32 DealerPosition = 0;
+
+	UFUNCTION(BlueprintPure, Category = "Betting")
+	int32 GetSmallBlindIndex() const;
+
+	UFUNCTION(BlueprintPure, Category = "Betting")
+	int32 GetBigBlindIndex() const;
+	// 베팅 시작할 플레이어 인덱스
+	UFUNCTION(BlueprintPure, Category = "Betting")
+	int32 GetFirstPlayerIndex() const;
+
+	// Dealer 포지션 설정
+	UFUNCTION(BlueprintCallable, Category = "Betting")
+	void RotateDealer();
 	
 public:
 	//---------------------------------------------------//

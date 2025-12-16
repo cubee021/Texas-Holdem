@@ -39,6 +39,8 @@ void AHoldemGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AHoldemGameState, TotalPot);
 	DOREPLIFETIME(AHoldemGameState, CurrentMaxBet);
 	DOREPLIFETIME(AHoldemGameState, CurrentTurnPlayerIndex);
+	
+	DOREPLIFETIME(AHoldemGameState, DealerPosition);
 }
 
 void AHoldemGameState::GenerateDeck()
@@ -407,6 +409,75 @@ void AHoldemGameState::CollectBetsIntoPot()
 	}
 
 	CurrentMaxBet = 0;
+}
+
+int32 AHoldemGameState::GetSmallBlindIndex() const
+{
+	int32 PlayerCount = PlayerArray.Num();
+	if (PlayerCount == 0) return -1;
+
+	// Heads-Up (2인)
+	// P1 - Dealer/Small Blind, P2 - Big Blind
+	if (PlayerCount == 2)
+	{
+		return DealerPosition;
+	}
+
+	// 3인 이상
+	return (DealerPosition + 1) % PlayerCount;
+}
+
+int32 AHoldemGameState::GetBigBlindIndex() const
+{
+	int32 PlayerCount = PlayerArray.Num();
+	if (PlayerCount == 0) return -1;
+
+	// Heads-Up (2인)
+	if (PlayerCount == 2)
+	{
+		return (DealerPosition + 1) % PlayerCount;
+	}
+
+	// 3인 이상
+	return (DealerPosition +2) % PlayerCount;
+}
+
+int32 AHoldemGameState::GetFirstPlayerIndex() const
+{
+	int32 PlayerCount = PlayerArray.Num();
+	if (PlayerCount == 0) return -1;
+
+	// PreFlop : Big Blind 다음부터
+	if (CurrentPhase == EHoldemPhase::PreFlop)
+	{
+		int32 BBIndex = GetBigBlindIndex();
+		return (BBIndex + 1) % PlayerCount;
+	}
+
+	// Flop/Turn/River : Small Blind부터 시작
+	// (Heads-Up에서는 Big Blind부터)
+	if (PlayerCount == 2)
+	{
+		return GetBigBlindIndex();
+	}
+	else
+	{
+		return GetSmallBlindIndex();
+	}
+}
+
+void AHoldemGameState::RotateDealer()
+{
+	if (!HasAuthority()) return;
+
+	int32 PlayerCount = PlayerArray.Num();
+	if (PlayerCount == 0) return;
+
+	// Dealer 포지션 시계방향으로 회전 (다음 플레이어)
+	DealerPosition = (DealerPosition + 1) % PlayerCount;
+
+	UE_LOG(LogTemp, Warning, TEXT("[RotateDealer] New Dealer position: %d"),
+		DealerPosition);
 }
 
 void AHoldemGameState::SpawnPlayerItem()

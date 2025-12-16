@@ -28,6 +28,8 @@ void AHoldemPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(AHoldemPlayerState, SeatIndex);
+
 	DOREPLIFETIME(AHoldemPlayerState, SelectedItem);
 
 	DOREPLIFETIME(AHoldemPlayerState, bIsFolded);
