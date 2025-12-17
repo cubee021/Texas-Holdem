@@ -3,6 +3,7 @@
 
 #include "Game/HoldemPlayerState.h"
 
+#include "Card.h"
 #include "MyPlayerSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
@@ -48,6 +49,15 @@ void AHoldemPlayerState::AddCard(ACard* Card)
 
 void AHoldemPlayerState::ClearHand()
 {
+	if (!HasAuthority()) return;
+	
+	for (ACard* Card : HandCards)
+	{
+		if (Card&&!Card->IsPendingKillPending())
+		{
+			Card->Destroy();
+		}
+	}
 	HandCards.Empty();
 }
 

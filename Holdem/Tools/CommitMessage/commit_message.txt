@@ -1,21 +1,14 @@
-﻿feat: 파일 8개 변경 (+432/-44)
+﻿chore: 파일 2개 변경 (+51/-3)
 
 # 요약
-# - 요약: 문서 업데이트, UE 매크로/타입 변경 포함
-# - 총 변경량: +432/-44, 파일: 8
-# - 주요 파일: Holdem/AgentLog/cubee021/251217.md, Holdem/Source/Holdem/Private/Game/HoldemGameMode.cpp, Holdem/Source/Holdem/Private/Game/HoldemGameState.cpp
-# - 영향 경로 상위: Holdem/Source, Holdem/AgentLog
-# - 변경 확장자 상위: .md:246, .cpp:191, .h:39
-# - 코드 토큰: UFUNCTION:8, UPROPERTY:5, Blueprint:12
+# - 요약: C++ 코드 중심 변경
+# - 총 변경량: +51/-3, 파일: 2
+# - 주요 파일: Holdem/Source/Holdem/Private/Game/HoldemGameMode.cpp, Holdem/Source/Holdem/Private/Game/HoldemPlayerState.cpp
+# - 영향 경로 상위: Holdem/Source
+# - 변경 확장자 상위: .cpp:54
 
 # 변경 내역 상위 10개
-# - A Holdem/AgentLog/cubee021/251217.md (+246/-0)
-# - M Holdem/Source/Holdem/Private/Game/HoldemGameMode.cpp (+76/-34)
-# - M Holdem/Source/Holdem/Private/Game/HoldemGameState.cpp (+71/-0)
-# - M Holdem/Source/Holdem/Public/Game/HoldemGameState.h (+21/-0)
-# - M Holdem/Source/Holdem/Public/Game/HoldemGameMode.h (+3/-7)
-# - M Holdem/Source/Holdem/Private/MyPlayerController.cpp (+5/-3)
-# - M Holdem/Source/Holdem/Public/Game/HoldemPlayerState.h (+8/-0)
-# - M Holdem/Source/Holdem/Private/Game/HoldemPlayerState.cpp (+2/-0)
+# - M Holdem/Source/Holdem/Private/Game/HoldemGameMode.cpp (+41/-3)
+# - M Holdem/Source/Holdem/Private/Game/HoldemPlayerState.cpp (+10/-0)
 
 # 브랜치: main

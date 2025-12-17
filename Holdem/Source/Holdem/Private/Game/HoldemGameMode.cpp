@@ -272,11 +272,38 @@ void AHoldemGameMode::StartShowdown()
 			UE_LOG(LogTemp, Error, TEXT("[StartShowdown] No winners found!"));
 		}
 
-		// Testing
 		// Dealer 포지션 회전
 		GS->RotateDealer();
 
-		// TODO: 승자에게 칩 분배
+		// 승자에게 칩 분배
+		if (Winners.Num() == 1)
+		{
+			// 단독 승자 - 팟 전액 지급
+			AHoldemPlayerState* Winner = Cast<AHoldemPlayerState>(Winners[0]);
+			if (Winner)
+			{
+				Winner->CurrentChips += GS->TotalPot;
+				UE_LOG(LogTemp, Warning, TEXT("[Chip Distribution] %s wins %d chips!"),
+					*Winner->GetPlayerName(), GS->TotalPot);
+			}
+		}
+		else if (Winners.Num() > 1)
+		{
+			// 공동 승자 - 미니게임 후 몰아주기
+			UE_LOG(LogTemp, Warning, TEXT("[TODO] Launch mini-game to determine final winner."));
+
+			// TODO: 미니게임 시작
+			// StartMiniGame(Winners, GS->TotalPot);
+
+			// Testing (임시로 첫번째 플레이어에게 지급)
+			AHoldemPlayerState* TempWinner = Cast<AHoldemPlayerState>(Winners[0]);
+			if (TempWinner)
+			{
+				TempWinner->CurrentChips += GS->TotalPot;
+				UE_LOG(LogTemp, Warning, TEXT("[Chip Distribution] %s wins %d chips!"),
+					*TempWinner->GetPlayerName(), GS->TotalPot);
+			}
+		}
 
 		// 일정시간 후, 다음 판 시작
 		GetWorldTimerManager().SetTimer(NextRoundTimerHandle, this,
@@ -459,6 +486,7 @@ void AHoldemGameMode::PrepareNextRound()
 			Player->CurrentBet = 0;
 			Player->TotalBet = 0;
 			Player->ClearHand();
+			// TODO: 아이템도 없애야 함 + 아이템 또 스폰되지 않도록 처리
 		}
 	}
 
@@ -469,8 +497,18 @@ void AHoldemGameMode::PrepareNextRound()
 	GS->CommunityCards.Empty();
 	GS->Deck.Empty();
 
-	// 카드들 정리 (TODO: 카드 Destroy 또는 풀로 반환)
+	// Community Cards 정리
+	for (ACard* Card : GS->SpawnedCards)
+	{
+		if (Card && !Card->IsPendingKillPending())
+		{
+			Card->Destroy();
+		}
+	}
+	GS->SpawnedCards.Empty();
 
+	UE_LOG(LogTemp, Warning, TEXT("[PrepareNextRound] All cards destroyed and cleared."));
+	
 	// 다음 판 시작
 	StartPreFlop();
 }
