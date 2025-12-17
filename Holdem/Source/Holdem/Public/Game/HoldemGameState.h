@@ -222,11 +222,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
 	int32 MinimumChips = 100;
 
+	// 현재 베팅 라운드의 레이즈 횟수
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Betting")
+	int32 CurrentRaiseCount = 0;
+
+	// 최대 레이즈 횟수 (1 Bet + 3 Raise)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Betting")
+	int32 MaxRaise = 4;
+	
 public:
 	// 현재 턴 플레이어 인덱스 (-1 : 베팅중 아님)
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentTurnPlayerIndex, BlueprintReadOnly, Category = "Betting")
 	int32 CurrentTurnPlayerIndex = -1;
-
+	
 	UFUNCTION()
 	void OnRep_CurrentTurnPlayerIndex();
 

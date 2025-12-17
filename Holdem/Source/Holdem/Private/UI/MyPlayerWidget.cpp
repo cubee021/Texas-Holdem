@@ -63,7 +63,7 @@ void UMyPlayerWidget::UpdateButtonTexts()
 	// 베팅 상황 체크
 	bool bNoBets = (GS->CurrentMaxBet == 0);
 	bool bCanCheck = (PS->CurrentBet == GS->CurrentMaxBet);
-	int32 CallAmount = GS->CurrentMaxBet - PS->CurrentBet;
+	int32 CallAmount = FMath::Max(0, GS->CurrentMaxBet - PS->CurrentBet);
 
 	// Button 0: Raise of Bet
 	if (bNoBets)

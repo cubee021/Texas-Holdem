@@ -315,9 +315,11 @@ void AHoldemGameMode::StartBettingRound()
 		}
 	}
 
+	// 레이즈 카운터 리셋 (Cap 시 해제)
+	//GS->CurrentRaiseCount = 0;
+	
 	// 첫번째 턴 플레이어 설정
-	// (임시로 0번부터 시작. 추후에 Dealer/Blind 적용 예정)
-	GS->CurrentTurnPlayerIndex = 0;
+	GS->CurrentTurnPlayerIndex = GS->GetFirstPlayerIndex();
 
 	// Fold한 플레이어 스킵
 	while (GS->CurrentTurnPlayerIndex < GS->PlayerArray.Num())

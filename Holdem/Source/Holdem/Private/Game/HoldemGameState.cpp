@@ -356,6 +356,13 @@ void AHoldemGameState::ProcessRaise(AHoldemPlayerState* Player)
 {
 	if (!HasAuthority() || !Player) return;
 
+	// Cap 시 해제
+	// if (CurrentRaiseCount >= MaxRaise)
+	// {
+	// 	UE_LOG(LogTemp, Warning, TEXT("[ProcessRaise] Max raises reached!"));
+	// 	return;
+	// }
+
 	// Fixed Limit : 현재 Phase에 따른 베팅 단위
 	// PreFlop/Flop -> 5 , Turn/River -> 10
 	int32 BettingUnit = (CurrentPhase == EHoldemPhase::Turn ||
@@ -384,6 +391,9 @@ void AHoldemGameState::ProcessRaise(AHoldemPlayerState* Player)
 		}
 	}
 
+	// Cap 시 해제
+	//CurrentRaiseCount++;
+
 	UE_LOG(LogTemp, Warning, TEXT("[Betting Log] %s raised by %d (Total bet: %d, Max bet: %d)"),
 				*Player->GetPlayerName(), AdditionalAmount, Player->CurrentBet, CurrentMaxBet);
 }
@@ -409,6 +419,8 @@ void AHoldemGameState::CollectBetsIntoPot()
 	}
 
 	CurrentMaxBet = 0;
+
+	UE_LOG(LogTemp, Warning, TEXT("[CollectBetsIntoPot] Current TotalPot : %d"), TotalPot);
 }
 
 int32 AHoldemGameState::GetSmallBlindIndex() const
