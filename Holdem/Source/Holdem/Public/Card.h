@@ -112,7 +112,9 @@ public:
 	class UInteractableComponent* InteractableComp;
 
 public:
+	//---------------------------------------------------//
 	// Card Data
+	//---------------------------------------------------//
 	UPROPERTY(ReplicatedUsing=OnRep_CardData, BlueprintReadOnly, Category = "Card")
 	FCardData CardData;
 
@@ -140,4 +142,43 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Card")
 	void ResetToOriginalPosition();
 
+private:
+	//---------------------------------------------------//
+	// Flip Animation
+	//---------------------------------------------------//
+
+	enum class EFlipAnimationPhase : uint8
+	{
+		Lifting,
+		Flipping,
+		Dropping
+	};
+	
+	bool bIsFlipping = false;
+	EFlipAnimationPhase FlipPhase;
+	float FlipProgress = 0.0f;
+
+	// 각 단계별 지속시간
+	UPROPERTY(EditAnywhere, Category = "Card")
+	float LiftDuration = 0.2f;
+	
+	UPROPERTY(EditAnywhere, Category = "Card")
+	float FlipDuration = 0.4f;
+	
+	UPROPERTY(EditAnywhere, Category = "Card")
+	float DropDuration = 0.2f;
+
+	FVector FlipInitialLocation;
+	FVector FlipTargetLocation;
+	float FlipLiftHeight = 15.f;
+
+	FRotator FlipInitialRotation;
+	FRotator FlipTargetRotation;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Card|Animation")
+	void PlayFlipAnimation();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayFlipAnimation();
 };

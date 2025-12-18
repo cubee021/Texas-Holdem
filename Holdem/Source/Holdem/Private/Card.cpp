@@ -55,6 +55,77 @@ void ACard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	 if (bIsFlipping)
+      {
+          switch (FlipPhase)
+          {
+          case EFlipAnimationPhase::Lifting:
+              {
+                  FlipProgress += DeltaTime / LiftDuration;
+
+                  if (FlipProgress >= 1.0f)
+                  {
+                      // Lifting 완료 → Flipping으로 전환                                                                                                               
+                      FlipPhase = EFlipAnimationPhase::Flipping;
+                      FlipProgress = 0.0f;
+                      SetActorLocation(FlipTargetLocation);
+                  }
+                  else                                                                                                                                                  
+                  {
+                      // 위로 올라가기                                                                                                                                  
+                      float Alpha = FMath::InterpEaseInOut(0.0f, 1.0f, FlipProgress, 2.0f);
+                      FVector NewLocation = FMath::Lerp(FlipInitialLocation, FlipTargetLocation, Alpha);
+                      SetActorLocation(NewLocation);
+                  }
+              }
+              break;
+
+          case EFlipAnimationPhase::Flipping:
+              {
+                  FlipProgress += DeltaTime / FlipDuration;
+
+                  if (FlipProgress >= 1.0f)
+                  {
+                      // Flipping 완료 → Dropping으로 전환                                                                                                              
+                      FlipPhase = EFlipAnimationPhase::Dropping;
+                      FlipProgress = 0.0f;
+                      SetActorRotation(FlipTargetRotation);
+                  }
+                  else                                                                                                                                                  
+                  {
+                      // 제자리에서 뒤집기 (위치는 그대로)                                                                                                              
+                      float Alpha = FMath::InterpEaseInOut(0.0f, 1.0f, FlipProgress, 2.0f);
+                      FRotator NewRotation = FMath::Lerp(FlipInitialRotation, FlipTargetRotation, Alpha);
+                      SetActorRotation(NewRotation);
+                  }
+              }
+              break;
+
+          case EFlipAnimationPhase::Dropping:
+              {
+                  FlipProgress += DeltaTime / DropDuration;
+
+                  if (FlipProgress >= 1.0f)
+                  {
+                      // 모든 애니메이션 완료                                                                                                                           
+                      bIsFlipping = false;
+                      SetActorLocation(FlipInitialLocation);
+
+                      // 물리 재활성화                                                                                                                                  
+                      Mesh->SetSimulatePhysics(true);
+                      Mesh->SetEnableGravity(true);
+                  }
+                  else                                                                                                                                                  
+                  {
+                      // 아래로 내려오기                                                                                                                                
+                      float Alpha = FMath::InterpEaseInOut(0.0f, 1.0f, FlipProgress, 2.0f);
+                      FVector NewLocation = FMath::Lerp(FlipTargetLocation, FlipInitialLocation, Alpha);
+                      SetActorLocation(NewLocation);
+                  }
+              }
+              break;
+          }
+      }
 }
 
 void ACard::OnRep_CardData()
@@ -101,5 +172,35 @@ void ACard::ResetToOriginalPosition()
 	CardState = ECardState::OnTable;
 	
 	UE_LOG(LogTemp, Log, TEXT("Card %d reset to original position"), CardData.GetCardID());
+}
+
+void ACard::PlayFlipAnimation()
+{
+	if (!HasAuthority()) return;
+
+	Multicast_PlayFlipAnimation();
+}
+
+void ACard::Multicast_PlayFlipAnimation_Implementation()
+{
+	// 물리 비활성화
+	Mesh->SetSimulatePhysics(false);
+	Mesh->SetEnableGravity(false);
+	
+	// 현재 위치/회전 저장
+	FlipInitialLocation = GetActorLocation();
+	FlipInitialRotation = GetActorRotation();
+
+	// 들어올린 위치 계산
+	FlipTargetLocation = FlipInitialLocation + FVector(0, 0, FlipLiftHeight);
+
+	// 목표 회전: 180도
+	FlipTargetRotation = FlipInitialRotation;
+	FlipTargetRotation.Roll += 180.f;
+
+	// 첫 단계: Lifting
+	FlipPhase = EFlipAnimationPhase::Lifting;
+	FlipProgress = 0.0f;
+	bIsFlipping = true;
 }
 

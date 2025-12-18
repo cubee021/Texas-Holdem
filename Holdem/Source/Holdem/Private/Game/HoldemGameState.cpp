@@ -252,6 +252,8 @@ void AHoldemGameState::SpawnCommunityCard(int32 CardIdx, float RotationAngle)
 	{
 		CommunityCards.Add(NewCard);
 		NewCard->CardState = ECardState::OnTable;
+
+		NewCard->PlayFlipAnimation();
 	}
 }
 
