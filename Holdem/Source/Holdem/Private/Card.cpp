@@ -65,14 +65,14 @@ void ACard::Tick(float DeltaTime)
 
                   if (FlipProgress >= 1.0f)
                   {
-                      // Lifting 완료 → Flipping으로 전환                                                                                                               
+                      // Lifting 완료 → Flipping으로 전환
                       FlipPhase = EFlipAnimationPhase::Flipping;
                       FlipProgress = 0.0f;
                       SetActorLocation(FlipTargetLocation);
                   }
                   else                                                                                                                                                  
                   {
-                      // 위로 올라가기                                                                                                                                  
+                      // 위로 올라가기
                       float Alpha = FMath::InterpEaseInOut(0.0f, 1.0f, FlipProgress, 2.0f);
                       FVector NewLocation = FMath::Lerp(FlipInitialLocation, FlipTargetLocation, Alpha);
                       SetActorLocation(NewLocation);
@@ -86,14 +86,14 @@ void ACard::Tick(float DeltaTime)
 
                   if (FlipProgress >= 1.0f)
                   {
-                      // Flipping 완료 → Dropping으로 전환                                                                                                              
+                      // Flipping 완료 → Dropping으로 전환
                       FlipPhase = EFlipAnimationPhase::Dropping;
                       FlipProgress = 0.0f;
                       SetActorRotation(FlipTargetRotation);
                   }
                   else                                                                                                                                                  
                   {
-                      // 제자리에서 뒤집기 (위치는 그대로)                                                                                                              
+                      // 제자리에서 뒤집기 (위치는 그대로)
                       float Alpha = FMath::InterpEaseInOut(0.0f, 1.0f, FlipProgress, 2.0f);
                       FRotator NewRotation = FMath::Lerp(FlipInitialRotation, FlipTargetRotation, Alpha);
                       SetActorRotation(NewRotation);
@@ -107,17 +107,17 @@ void ACard::Tick(float DeltaTime)
 
                   if (FlipProgress >= 1.0f)
                   {
-                      // 모든 애니메이션 완료                                                                                                                           
+                      // 모든 애니메이션 완료
                       bIsFlipping = false;
                       SetActorLocation(FlipInitialLocation);
 
-                      // 물리 재활성화                                                                                                                                  
+                      // 물리 재활성화
                       Mesh->SetSimulatePhysics(true);
                       Mesh->SetEnableGravity(true);
                   }
                   else                                                                                                                                                  
                   {
-                      // 아래로 내려오기                                                                                                                                
+                      // 아래로 내려오기
                       float Alpha = FMath::InterpEaseInOut(0.0f, 1.0f, FlipProgress, 2.0f);
                       FVector NewLocation = FMath::Lerp(FlipTargetLocation, FlipInitialLocation, Alpha);
                       SetActorLocation(NewLocation);

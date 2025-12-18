@@ -11,6 +11,7 @@
 #include "Components/WidgetSwitcher.h"
 #include "Game/HoldemGameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/CardButtonWidget.h"
 #include "UI/SessionWidget.h"
 
 class USessionWidget;
@@ -28,8 +29,8 @@ void UMainMenuWidget::NativeConstruct()
 	Btn_Confirm->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClicked_Confirm);
 
 	// MainCanvas
-	Btn_Host->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClicked_Host);
-	Btn_Join->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClicked_Join);
+	CardBtn_Host->OnCardButtonClicked.AddUObject(this, &UMainMenuWidget::OnClicked_Host);
+	CardBtn_Join->OnCardButtonClicked.AddUObject(this, &UMainMenuWidget::OnClicked_Join);
 
 	// JoinCanvas
 	Btn_Update->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClicked_Update);

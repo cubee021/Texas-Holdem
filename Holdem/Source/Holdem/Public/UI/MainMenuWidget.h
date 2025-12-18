@@ -38,10 +38,10 @@ public:
 public:
 	// 1 : MainCanvas
 	UPROPERTY(meta = (BindWidget))
-	class UButton* Btn_Host;
+	class UCardButtonWidget* CardBtn_Host;
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* Btn_Join;
+	class UCardButtonWidget* CardBtn_Join;
 
 	UFUNCTION()
 	void OnClicked_Host();
