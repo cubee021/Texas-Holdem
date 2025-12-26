@@ -5,8 +5,8 @@
 
 #include "MyPlayerController.h"
 #include "Components/Button.h"
+#include "Components/HorizontalBox.h"
 #include "Components/TextBlock.h"
-#include "Components/VerticalBox.h"
 #include "Game/HoldemGameState.h"
 #include "Game/HoldemPlayerState.h"
 #include "Kismet/GameplayStatics.h"
@@ -114,23 +114,34 @@ void UMyPlayerWidget::OnTurnChangedHandler(int32 NewTurnIndex)
 
 void UMyPlayerWidget::OnBettingSelectionChanged(int32 SelectedIndex)
 {
-	// 모든 버튼 기본 스타일                                                                                                                                        
-	Btn_0->SetBackgroundColor(FLinearColor::White);
-	Btn_1->SetBackgroundColor(FLinearColor::White);
-	Btn_2->SetBackgroundColor(FLinearColor::White);
+	// 모든 버튼 기본 스타일
+	Btn_0->SetBackgroundColor(FLinearColor::Black);
+	Btn_1->SetBackgroundColor(FLinearColor::Black);
+	Btn_2->SetBackgroundColor(FLinearColor::Black);
+
+	Txt_0->SetColorAndOpacity(FLinearColor::Gray);
+	Txt_1->SetColorAndOpacity(FLinearColor::Gray);
+	Txt_2->SetColorAndOpacity(FLinearColor::Gray);
 
 	// 선택된 버튼 강조                                                                                                                                             
 	switch (SelectedIndex)
 	{
-	case 0: Btn_0->SetBackgroundColor(FLinearColor::Yellow); break;
-	case 1: Btn_1->SetBackgroundColor(FLinearColor::Yellow); break;
-	case 2: Btn_2->SetBackgroundColor(FLinearColor::Yellow); break;
+	case 0: Btn_0->SetBackgroundColor(FLinearColor(0, 0, 0, 0)); break;
+	case 1: Btn_1->SetBackgroundColor(FLinearColor(0, 0, 0, 0)); break;
+	case 2: Btn_2->SetBackgroundColor(FLinearColor(0, 0, 0, 0)); break;
+	}
+
+	switch (SelectedIndex)
+	{
+	case 0: Txt_0->SetColorAndOpacity(FLinearColor(1, 1, 1, 1)); break;
+	case 1: Txt_1->SetColorAndOpacity(FLinearColor(1, 1, 1, 1)); break;
+	case 2: Txt_2->SetColorAndOpacity(FLinearColor(1, 1, 1, 1)); break;
 	}
 }
 
 void UMyPlayerWidget::UpdateBettingUIVisibility()
 {
-	if (!VtclBox_Betting) return;
+	if (!HBox_Buttons) return;
 
 	AMyPlayerController* PC = Cast<AMyPlayerController>(GetOwningPlayer());
 	if (!PC) return;
@@ -141,6 +152,6 @@ void UMyPlayerWidget::UpdateBettingUIVisibility()
 		GS->CurrentPhase == EHoldemPhase::Turn ||
 		GS->CurrentPhase == EHoldemPhase::River);
 
-	VtclBox_Betting->SetVisibility(
+	HBox_Buttons->SetVisibility(
 		bShouldShowUI ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }

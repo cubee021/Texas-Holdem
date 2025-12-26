@@ -35,8 +35,8 @@ public:
 	//---------------------------------------------------//
 	// Betting UI
 	//---------------------------------------------------//
-	UPROPERTY(Meta = (BindWidget))
-	class UVerticalBox* VtclBox_Betting;
+	UPROPERTY(meta = (BindWidget))
+	class UHorizontalBox* HBox_Buttons;
 
 	UPROPERTY(Meta = (BindWidget))
 	class UButton* Btn_0;
