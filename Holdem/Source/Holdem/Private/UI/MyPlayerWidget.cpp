@@ -62,13 +62,12 @@ void UMyPlayerWidget::UpdateButtonTexts()
 	
 	// 베팅 상황 체크
 	bool bNoBets = (GS->CurrentMaxBet == 0);
-	bool bCanCheck = (PS->CurrentBet == GS->CurrentMaxBet);
 	int32 CallAmount = FMath::Max(0, GS->CurrentMaxBet - PS->CurrentBet);
 
 	// Button 0: Raise of Bet
 	if (bNoBets)
 	{
-		// 아무도 베팅 안했으면 "Bet" (Flop/Turn/River에서만 가능)  
+		// 아무도 베팅 안했으면 "Bet" (Flop/Turn/River에서만 가능)
 		FString BetText = FString::Printf(TEXT("Bet %d"), BettingUnit);
 		Txt_0->SetText(FText::FromString(BetText));
 	}
@@ -82,7 +81,7 @@ void UMyPlayerWidget::UpdateButtonTexts()
 	}
 
 	// Button 1: Call or Check
-	if (bCanCheck)
+	if (CallAmount == 0)
 	{
 		Txt_1->SetText(FText::FromString("Check"));
 	}
