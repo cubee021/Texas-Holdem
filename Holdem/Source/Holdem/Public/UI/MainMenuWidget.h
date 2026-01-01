@@ -38,10 +38,16 @@ public:
 public:
 	// 1 : MainCanvas
 	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Txt_SteamName;
+	
+	UPROPERTY(meta = (BindWidget))
 	class UCardButtonWidget* CardBtn_Host;
 
 	UPROPERTY(meta = (BindWidget))
 	class UCardButtonWidget* CardBtn_Join;
+
+	UFUNCTION()
+	void UpdateSteamName(FString InName);
 
 	UFUNCTION()
 	void OnClicked_Host();

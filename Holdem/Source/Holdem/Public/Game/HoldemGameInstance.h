@@ -74,4 +74,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LeaveSession();
 
+public:
+	//---------------------------------------------------//
+	// Steam Online
+	//---------------------------------------------------//
+	// Steam 플레이어 정보
+	UPROPERTY()
+	FString LocalPlayerSteamID;
+
+	UPROPERTY()
+	FString LocalPlayerSteamName;
+
+	// Steam 플레이어 정보 로드
+	void LoadSteamPlayerInfo();
+	
+	
 };

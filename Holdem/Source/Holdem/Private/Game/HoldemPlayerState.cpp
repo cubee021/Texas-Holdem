@@ -5,6 +5,7 @@
 
 #include "Card.h"
 #include "MyPlayerSaveGame.h"
+#include "Game/HoldemGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
@@ -40,6 +41,20 @@ void AHoldemPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProper
 
 	DOREPLIFETIME(AHoldemPlayerState, CurrentBet);
 	DOREPLIFETIME(AHoldemPlayerState, TotalBet);
+
+	DOREPLIFETIME(AHoldemPlayerState, SteamID);
+	DOREPLIFETIME(AHoldemPlayerState, SteamName);
+}
+
+void AHoldemPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Server에서만 GameInstance로부터 Steam 정보 로드
+	if (HasAuthority())
+	{
+		LoadSteamInfoFromGameInstance();
+	}
 }
 
 void AHoldemPlayerState::AddCard(ACard* Card)
@@ -59,6 +74,57 @@ void AHoldemPlayerState::ClearHand()
 		}
 	}
 	HandCards.Empty();
+}
+
+void AHoldemPlayerState::OnRep_SteamID()
+{
+	OnSteamInfoChanged.Broadcast(SteamID, SteamName);
+}
+
+void AHoldemPlayerState::OnRep_SteamName()
+{
+	OnSteamInfoChanged.Broadcast(SteamID, SteamName);
+}
+
+void AHoldemPlayerState::SetSteamID(const FString& NewSteamID)
+{
+	SteamID = NewSteamID;
+	OnSteamInfoChanged.Broadcast(SteamID, SteamName);
+}
+
+void AHoldemPlayerState::SetSteamName(const FString& NewSteamName)
+{
+	SteamName = NewSteamName;
+	OnSteamInfoChanged.Broadcast(SteamID, SteamName);
+}
+
+void AHoldemPlayerState::LoadSteamInfoFromGameInstance()
+{
+	UHoldemGameInstance* GI = Cast<UHoldemGameInstance>(GetGameInstance());
+	if (!GI) return;
+
+	FString LoadedSteamID = GI->LocalPlayerSteamID;
+	FString LoadedSteamName = GI->LocalPlayerSteamName;
+
+	if (!LoadedSteamID.IsEmpty())
+	{
+		SetSteamID(LoadedSteamID);
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Steam ID 로드 완료: %s"), *GetName(), *LoadedSteamID);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Steam ID가 비어있습니다."), *GetName());
+	}
+
+	if (!LoadedSteamName.IsEmpty())
+	{
+		SetSteamName(LoadedSteamName);
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Steam Name 로드 완료: %s"), *GetName(), *LoadedSteamName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Steam Name이 비어있습니다."), *GetName());
+	}
 }
 
 void AHoldemPlayerState::OnRep_bIsFolded()

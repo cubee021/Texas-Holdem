@@ -57,6 +57,19 @@ void UBarWidget::NativeConstruct()
 				CkBox_None->SetCheckedState(ECheckBoxState::Checked);
 				PS->Server_SetSelectedItem(EItemType::None);
 			}
+
+			// 플레이어 이름 및 세션 이름 초기 업데이트
+			UHoldemGameInstance* GI = Cast<UHoldemGameInstance>(GetGameInstance());
+			if (GI)
+			{
+				FString SteamName = GI->LocalPlayerSteamName;
+				FString SessionName = "";
+
+				if (!SteamName.IsEmpty())
+				{
+					SetBarInfo(SteamName, SessionName);
+				}
+			}
 		}
 	}
 }

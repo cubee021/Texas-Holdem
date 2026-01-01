@@ -53,6 +53,8 @@ void UMyPlayerWidget::TrySubscribeDeligates()
 		PS->OnPositionChanged.AddDynamic(this, &UMyPlayerWidget::UpdatePosition);
 		PS->OnFoldChanged.AddDynamic(this, &UMyPlayerWidget::UpdateHandRank);
 
+		PS->OnSteamInfoChanged.AddDynamic(this, &UMyPlayerWidget::UpdateSteamInfo);
+		
 		// 초기 호출
 		UpdatePlayerName();
 		UpdateCurrentChips(PS->GetCurrentChips());
@@ -149,10 +151,24 @@ void UMyPlayerWidget::UpdateBettingInfo(int32 NewCurrentBet, int32 NewTotalBet)
 
 void UMyPlayerWidget::UpdatePlayerName()
 {
+	// 초기 호출용
 	AHoldemPlayerState* PS = GetOwningPlayerState<AHoldemPlayerState>();
 	if (!PS || !Txt_PlayerName) return;
 
-	Txt_PlayerName->SetText(FText::FromString(PS->GetPlayerName()));
+	// Steam 이름 사용, 비어있으면 기본 이름 사용                                                                                                                     
+	FString DisplayName = PS->GetSteamName();
+	if (DisplayName.IsEmpty())
+	{
+		DisplayName = PS->GetPlayerName();
+	}
+	
+	Txt_PlayerName->SetText(FText::FromString(DisplayName));
+}
+
+void UMyPlayerWidget::UpdateSteamInfo(FString InSteamID, FString InSteamName)
+{
+	if (Txt_PlayerName)
+		Txt_PlayerName->SetText(FText::FromString(InSteamName));
 }
 
 void UMyPlayerWidget::UpdateCurrentChips(int32 NewChips)

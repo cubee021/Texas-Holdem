@@ -106,6 +106,9 @@ public:
 	void UpdatePlayerName();
 
 	UFUNCTION()
+	void UpdateSteamInfo(FString InSteamID, FString InSteamName);
+
+	UFUNCTION()
 	void UpdateCurrentChips(int32 NewChips);
 
 	UFUNCTION()

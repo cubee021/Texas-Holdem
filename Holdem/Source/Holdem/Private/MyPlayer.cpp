@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/InteractableComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Game/HoldemPlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -73,12 +74,20 @@ void AMyPlayer::BeginPlay()
 	UNameTagWidget* Tag = Cast<UNameTagWidget>(NameTag->GetWidget());
 	if (Tag)
 	{
-		UMyPlayerSaveGame* SG = Cast<UMyPlayerSaveGame>(
-		UGameplayStatics::LoadGameFromSlot(TEXT("PlayerDataSlot"), 0));
-
-		if (!SG) return;
-		
-		Tag->SetName(SG->PlayerName);
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		if (PC)
+		{
+			AHoldemPlayerState* PS = PC->GetPlayerState<AHoldemPlayerState>();
+			if (PS)
+			{
+				FString DisplayName = PS->GetSteamName();
+				if (DisplayName.IsEmpty())
+				{
+					DisplayName = TEXT("Unknown");
+				}
+				Tag->SetName(DisplayName);
+			}
+		}
 	}
 }
 

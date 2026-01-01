@@ -21,6 +21,11 @@ void UMainMenuWidget::NativeConstruct()
 	Super::NativeConstruct();
 	
 	GI = Cast<UHoldemGameInstance>(GetGameInstance());
+	if (GI)
+	{
+		FString SteamName = GI->LocalPlayerSteamName;
+		UpdateSteamName(SteamName);
+	}
 
 	// 마우스 커서 보이게
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
@@ -75,15 +80,22 @@ void UMainMenuWidget::OnClicked_Confirm()
 	}
 }
 
+void UMainMenuWidget::UpdateSteamName(FString InName)
+{
+	if (Txt_SteamName)
+		Txt_SteamName->SetText(FText::FromString(InName));
+}
+
 void UMainMenuWidget::OnClicked_Host()
 {
 	// 플레이어명과 동일하게 세션 생성
-	UMyPlayerSaveGame* SG = Cast<UMyPlayerSaveGame>(
-		UGameplayStatics::LoadGameFromSlot(TEXT("PlayerDataSlot"), 0));
+	if (!GI) return;
 
-	if (!SG) return;
-
-	FString SessionName = SG->PlayerName;
+	FString SessionName = GI->LocalPlayerSteamName;
+	if (SessionName.IsEmpty())
+	{
+		SessionName = TEXT("Unknown");
+	}
 
 	GI->CreateMySession(SessionName);
 }

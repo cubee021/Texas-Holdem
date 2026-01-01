@@ -26,6 +26,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentChipsChanged, int32, NewCh
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPositionChanged, EPlayerPosition, NewPosition);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFoldChanged, bool, bNewIsFolded);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSteamInfoChanged, FString, SteamID, FString, SteamName);
+
 UCLASS()
 class HOLDEM_API AHoldemPlayerState : public APlayerState
 {
@@ -35,6 +37,7 @@ public:
 	AHoldemPlayerState();
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void BeginPlay() override;
 
 public:
 	//---------------------------------------------------//
@@ -70,6 +73,34 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_SetSelectedItem(EItemType NewItem);
 
+protected:
+	//---------------------------------------------------//
+	// Steam Info
+	//---------------------------------------------------//
+	// Steam ID
+	UPROPERTY(ReplicatedUsing=OnRep_SteamID, BlueprintReadOnly, Category = Steam)
+	FString SteamID;
+
+	UFUNCTION()
+	void OnRep_SteamID();
+
+	// Steam 닉네임
+	UPROPERTY(ReplicatedUsing=OnRep_SteamName, BlueprintReadOnly, Category = Steam)
+	FString SteamName;
+
+	UFUNCTION()
+	void OnRep_SteamName();
+
+public:
+	// Getters & Setters
+	void SetSteamID(const FString& NewSteamID);
+	void SetSteamName(const FString& NewSteamName);
+	FORCEINLINE FString GetSteamID() const {return SteamID;}
+	FORCEINLINE FString GetSteamName() const {return SteamName;}
+
+	// GameInstance에서 Steam 정보 로드
+	void LoadSteamInfoFromGameInstance();
+	
 protected:
 	//---------------------------------------------------//
 	// Game State
@@ -159,4 +190,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnFoldChanged OnFoldChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnSteamInfoChanged OnSteamInfoChanged;
 };

@@ -32,6 +32,8 @@ void UHoldemGameInstance::Init()
 		// 세션 파괴 성공시 호출되는 함수 등록                                                    
 		sessionInterface->OnDestroySessionCompleteDelegates.AddUObject(
 			this, &UHoldemGameInstance::OnDestroySessionComplete);
+
+		LoadSteamPlayerInfo();
 	}
 }
 
@@ -248,4 +250,40 @@ void UHoldemGameInstance::LeaveSession()
 			UE_LOG(LogTemp, Warning, TEXT("메인 메뉴로 이동"));
 			GetWorld()->GetFirstPlayerController()->ClientTravel("/Game/Maps/MainMenu", ETravelType::TRAVEL_Absolute);
 	}, 0.5f, false);
+}
+
+void UHoldemGameInstance::LoadSteamPlayerInfo()
+{
+	IOnlineSubsystem* Subsys = Online::GetSubsystem(GetWorld());
+	if (!Subsys) return;
+
+	// Identity 인터페이스 가져오기
+	IOnlineIdentityPtr IdentityInterface = Subsys->GetIdentityInterface();
+	if (!IdentityInterface.IsValid()) return;
+
+	// LocalUserNum 0번 (첫 번째 로컬 플레이어)
+	const int32 LocalUserNum = 0;
+	// Steam ID 가져오기
+	FUniqueNetIdPtr UniqueNetId = IdentityInterface->GetUniquePlayerId(LocalUserNum);
+	if (UniqueNetId.IsValid())
+	{
+		LocalPlayerSteamID = UniqueNetId->ToString();
+		UE_LOG(LogTemp, Warning, TEXT("Steam ID: %s"), *LocalPlayerSteamID);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Steam ID를 가져올 수 없습니다."));
+	}
+
+	// Steam 닉네임 가져오기
+	LocalPlayerSteamName = IdentityInterface->GetPlayerNickname(LocalUserNum);
+	if (!LocalPlayerSteamName.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Steam Name: %s"), *LocalPlayerSteamName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Steam 닉네임을 가져올 수 없습니다."));
+		LocalPlayerSteamName = TEXT("Unknown Player");
+	}
 }
