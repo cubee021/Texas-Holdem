@@ -1,22 +1,14 @@
-﻿feat: 파일 9개 변경 (+174/-13)
+﻿feat: 파일 2개 변경 (+68/-3)
 
 # 요약
-# - 요약: C++ 코드 중심 변경, UE 매크로/타입 변경 포함
-# - 총 변경량: +174/-13, 파일: 9
-# - 주요 파일: Holdem/Source/Holdem/Public/UI/CardButtonWidget.h, Holdem/Source/Holdem/Private/UI/CardButtonWidget.cpp, Holdem/Source/Holdem/Private/Card.cpp
-# - 영향 경로 상위: Holdem/Source, Holdem/Content, Holdem/Binaries
-# - 변경 확장자 상위: .cpp:97, .h:86, .modules:2
-# - 코드 토큰: UFUNCTION:1, UPROPERTY:10, UCLASS:1, Blueprint:5
+# - 요약: 문서 업데이트
+# - 총 변경량: +68/-3, 파일: 2
+# - 주요 파일: Holdem/AgentLog/cubee021/251231.md, Holdem/Source/Holdem/Private/UI/MyPlayerWidget.cpp
+# - 영향 경로 상위: Holdem/AgentLog, Holdem/Source
+# - 변경 확장자 상위: .md:66, .cpp:5
 
 # 변경 내역 상위 10개
-# - A Holdem/Source/Holdem/Public/UI/CardButtonWidget.h (+82/-0)
-# - A Holdem/Source/Holdem/Private/UI/CardButtonWidget.cpp (+78/-0)
-# - M Holdem/Source/Holdem/Private/Card.cpp (+7/-7)
-# - M Holdem/Source/Holdem/Private/UI/MainMenuWidget.cpp (+3/-2)
-# - M Holdem/Source/Holdem/Public/UI/MainMenuWidget.h (+2/-2)
-# - M Holdem/Binaries/Win64/UnrealEditor.modules (+1/-1)
-# - M Holdem/Source/Holdem/Holdem.Build.cs (+1/-1)
-# - A Holdem/Content/UI/Button/WBP_CardButton.uasset (+0/-0)
-# - M Holdem/Content/UI/WBP_MainMenu.uasset (+0/-0)
+# - A Holdem/AgentLog/cubee021/251231.md (+66/-0)
+# - M Holdem/Source/Holdem/Private/UI/MyPlayerWidget.cpp (+2/-3)
 
 # 브랜치: main

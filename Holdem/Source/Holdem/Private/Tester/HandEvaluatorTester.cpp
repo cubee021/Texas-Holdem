@@ -131,7 +131,7 @@ void AHandEvaluatorTester::DetermineTestWinner()
 		if (!TestPS) continue;
 
 		TestPS->SetPlayerName(PlayerData.PlayerName);
-		TestPS->bIsFolded = false;
+		TestPS->SetIsFolded(false);
 
 		// HandCards 할당
 		for (const FCardData& CardData : PlayerData.HandCards)
