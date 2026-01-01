@@ -1,14 +1,23 @@
-﻿feat: 파일 2개 변경 (+68/-3)
+﻿feat: 파일 13개 변경 (+362/-28)
 
 # 요약
-# - 요약: 문서 업데이트
-# - 총 변경량: +68/-3, 파일: 2
-# - 주요 파일: Holdem/AgentLog/cubee021/251231.md, Holdem/Source/Holdem/Private/UI/MyPlayerWidget.cpp
-# - 영향 경로 상위: Holdem/AgentLog, Holdem/Source
-# - 변경 확장자 상위: .md:66, .cpp:5
+# - 요약: UE 매크로/타입 변경 포함
+# - 총 변경량: +362/-28, 파일: 13
+# - 주요 파일: Holdem/AgentLog/cubee021/260101.md, Holdem/Source/Holdem/Private/Game/HoldemPlayerState.cpp, Holdem/Source/Holdem/Private/Game/HoldemGameInstance.cpp
+# - 영향 경로 상위: Holdem/Source, Holdem/AgentLog, Holdem/Config
+# - 변경 확장자 상위: .cpp:178, .md:125, .h:58
+# - 코드 토큰: UFUNCTION:4, UPROPERTY:6, Blueprint:3
 
 # 변경 내역 상위 10개
-# - A Holdem/AgentLog/cubee021/251231.md (+66/-0)
-# - M Holdem/Source/Holdem/Private/UI/MyPlayerWidget.cpp (+2/-3)
+# - M Holdem/AgentLog/cubee021/260101.md (+125/-0)
+# - M Holdem/Source/Holdem/Private/Game/HoldemPlayerState.cpp (+66/-0)
+# - M Holdem/Source/Holdem/Private/Game/HoldemGameInstance.cpp (+38/-0)
+# - M Holdem/Source/Holdem/Public/Game/HoldemPlayerState.h (+34/-0)
+# - M Holdem/Config/DefaultEngine.ini (+12/-16)
+# - M Holdem/Source/Holdem/Private/UI/MainMenuWidget.cpp (+17/-5)
+# - M Holdem/Source/Holdem/Private/MyPlayer.cpp (+15/-6)
+# - M Holdem/Source/Holdem/Private/UI/MyPlayerWidget.cpp (+17/-1)
+# - M Holdem/Source/Holdem/Public/Game/HoldemGameInstance.h (+15/-0)
+# - M Holdem/Source/Holdem/Private/UI/BarWidget.cpp (+13/-0)
 
 # 브랜치: main
