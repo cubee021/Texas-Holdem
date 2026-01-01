@@ -28,6 +28,10 @@ void UMyPlayerWidget::NativeConstruct()
 		GS->OnTurnChanged.AddDynamic(this, &UMyPlayerWidget::OnTurnChangedHandler);
 	}
 
+	// PlayerState 델리게이트 구독 및 초기 UI 설정
+	GetWorld()->GetTimerManager().SetTimer(DeligateTimerHandle, this,
+		&UMyPlayerWidget::TrySubscribeDeligates, 0.1f, true);
+
 	OnBettingSelectionChanged(1);
 	UpdateButtonTexts();
 }
@@ -37,6 +41,29 @@ void UMyPlayerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	Super::NativeTick(MyGeometry, InDeltaTime);
 	
 	UpdateTimer();
+}
+
+void UMyPlayerWidget::TrySubscribeDeligates()
+{
+	AHoldemPlayerState* PS = GetOwningPlayerState<AHoldemPlayerState>();
+	if (PS)
+	{
+		PS->OnBettingInfoChanged.AddDynamic(this, &UMyPlayerWidget::UpdateBettingInfo);
+		PS->OnCurrentChipsChanged.AddDynamic(this, &UMyPlayerWidget::UpdateCurrentChips);
+		PS->OnPositionChanged.AddDynamic(this, &UMyPlayerWidget::UpdatePosition);
+		PS->OnFoldChanged.AddDynamic(this, &UMyPlayerWidget::UpdateHandRank);
+
+		// 초기 호출
+		UpdatePlayerName();
+		UpdateCurrentChips(PS->GetCurrentChips());
+		UpdatePosition(PS->GetPosition());
+		UpdateBettingInfo(PS->GetCurrentBet(), PS->GetTotalBet());
+		UpdateHandRank(PS->GetIsFolded());
+
+		GetWorld()->GetTimerManager().ClearTimer(DeligateTimerHandle);
+
+		//UE_LOG(LogTemp, Warning, TEXT("[Widget] Delegates subscribed for %s"), *PS->GetPlayerName());
+	}
 }
 
 void UMyPlayerWidget::UpdateTimer()
@@ -62,7 +89,7 @@ void UMyPlayerWidget::UpdateButtonTexts()
 	
 	// 베팅 상황 체크
 	bool bNoBets = (GS->CurrentMaxBet == 0);
-	int32 CallAmount = FMath::Max(0, GS->CurrentMaxBet - PS->CurrentBet);
+	int32 CallAmount = FMath::Max(0, GS->CurrentMaxBet - PS->GetCurrentBet());
 
 	// Button 0: Raise of Bet
 	if (bNoBets)
@@ -75,7 +102,7 @@ void UMyPlayerWidget::UpdateButtonTexts()
 	{
 		// 누군가 베팅 했으면 "Raise"
 		int32 NewMaxBet = GS->CurrentMaxBet + BettingUnit;
-		int32 RaiseAdditional = NewMaxBet - PS->CurrentBet;
+		int32 RaiseAdditional = NewMaxBet - PS->GetCurrentBet();
 		FString RaiseText = FString::Printf(TEXT("Raise %d"), RaiseAdditional);
 		Txt_0->SetText(FText::FromString(RaiseText));
 	}
@@ -108,6 +135,68 @@ void UMyPlayerWidget::OnTurnChangedHandler(int32 NewTurnIndex)
 		
 		OnBettingSelectionChanged(1);
 		UpdateButtonTexts();
+	}
+}
+
+void UMyPlayerWidget::UpdateBettingInfo(int32 NewCurrentBet, int32 NewTotalBet)
+{
+	if (Txt_CurrentBet)
+		Txt_CurrentBet->SetText(FText::AsNumber(NewCurrentBet));
+
+	if (Txt_TotalBet)
+		Txt_TotalBet->SetText(FText::AsNumber(NewTotalBet));
+}
+
+void UMyPlayerWidget::UpdatePlayerName()
+{
+	AHoldemPlayerState* PS = GetOwningPlayerState<AHoldemPlayerState>();
+	if (!PS || !Txt_PlayerName) return;
+
+	Txt_PlayerName->SetText(FText::FromString(PS->GetPlayerName()));
+}
+
+void UMyPlayerWidget::UpdateCurrentChips(int32 NewChips)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("[Widget] UpdateCurrentChips: %d"), NewChips);
+	
+	if (Txt_CurrentChips)
+		Txt_CurrentChips->SetText(FText::AsNumber(NewChips));
+}
+
+void UMyPlayerWidget::UpdatePosition(EPlayerPosition NewPosition)
+{
+	if (!Txt_Position) return;
+
+	FString PositionText;
+	switch (NewPosition)
+	{
+	case EPlayerPosition::Dealer:
+		PositionText = TEXT("Dealer");
+		break;
+	case EPlayerPosition::SmallBlind:
+		PositionText = TEXT("Small Blind");
+		break;
+	case EPlayerPosition::BigBlind:
+		PositionText = TEXT("Big Blind");
+		break;
+	default:
+		PositionText = TEXT("-");
+		break;
+	}
+
+	Txt_Position->SetText(FText::FromString(PositionText));
+}
+
+void UMyPlayerWidget::UpdateHandRank(bool bNewIsFolded)
+{
+	// 추후 족보 표시 예정 (지금은 Fold 여부만)
+	if (bNewIsFolded)
+	{
+		Txt_HandRank->SetText(FText::FromString("Folded"));
+	}
+	else
+	{
+		Txt_HandRank->SetText(FText::GetEmpty());
 	}
 }
 

@@ -61,6 +61,67 @@ void AHoldemPlayerState::ClearHand()
 	HandCards.Empty();
 }
 
+void AHoldemPlayerState::OnRep_bIsFolded()
+{
+	OnFoldChanged.Broadcast(bIsFolded);
+}
+
+void AHoldemPlayerState::SetIsFolded(bool bNewFolded)
+{
+	bIsFolded = bNewFolded;
+	OnFoldChanged.Broadcast(bIsFolded);
+}
+
+void AHoldemPlayerState::SetPosition(EPlayerPosition NewPosition)
+{
+	Position = NewPosition;
+	OnPositionChanged.Broadcast(Position);
+}
+
+void AHoldemPlayerState::OnRep_Position()
+{
+	OnPositionChanged.Broadcast(Position);
+}
+
+void AHoldemPlayerState::OnRep_CurrentChips()
+{
+	// UE_LOG(LogTemp, Warning, TEXT("[%s] OnRep_CurrentChips: %d"),
+	// 		 *GetPlayerName(), CurrentChips);
+	
+	OnCurrentChipsChanged.Broadcast(CurrentChips);
+}
+
+void AHoldemPlayerState::SetCurrentChips(int32 NewChips)
+{
+	// UE_LOG(LogTemp, Warning, TEXT("[%s] SetCurrentChips: %d (HasAuthority: %d)"),
+	// 		  *GetPlayerName(), NewChips, HasAuthority());
+	
+	CurrentChips = NewChips;
+	OnCurrentChipsChanged.Broadcast(CurrentChips);
+}
+
+void AHoldemPlayerState::OnRep_CurrentBet()
+{
+	OnBettingInfoChanged.Broadcast(CurrentBet, TotalBet);
+}
+
+void AHoldemPlayerState::OnRep_TotalBet()
+{
+	OnBettingInfoChanged.Broadcast(CurrentBet, TotalBet);
+}
+
+void AHoldemPlayerState::SetCurrentBet(int32 NewBet)
+{
+	CurrentBet = NewBet;
+	OnBettingInfoChanged.Broadcast(CurrentBet, TotalBet);
+}
+
+void AHoldemPlayerState::SetTotalBet(int32 NewTotal)
+{
+	TotalBet = NewTotal;
+	OnBettingInfoChanged.Broadcast(CurrentBet, TotalBet);
+}
+
 void AHoldemPlayerState::Server_SetSelectedItem_Implementation(EItemType NewItem)
 {
 	SelectedItem = NewItem;

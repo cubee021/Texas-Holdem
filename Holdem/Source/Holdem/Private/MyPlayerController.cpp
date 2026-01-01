@@ -163,7 +163,7 @@ void AMyPlayerController::OnBettingConfirm(const FInputActionValue& Value)
 	
 	// 현재 상황 판단                                                                                               
 	bool bNoBets = (GS->CurrentMaxBet == 0);
-	bool bCanCheck = (PS->CurrentBet == GS->CurrentMaxBet);
+	bool bCanCheck = (PS->GetCurrentBet() == GS->CurrentMaxBet);
 
 	// 선택된 버튼에 따라 RPC 호출                                                                                                                                 
 	switch (SelectedButtonIndex)
@@ -211,7 +211,7 @@ void AMyPlayerController::Server_Check_Implementation()
 	if (!GM || !GS || !PS) return;
 
 	// Check 가능한지 확인
-	if (PS->CurrentBet != GS->CurrentMaxBet)
+	if (PS->GetCurrentBet() != GS->CurrentMaxBet)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Server_Check] Cannot check! Must Call or Fold."));
 		return;
@@ -246,8 +246,8 @@ void AMyPlayerController::Server_Call_Implementation()
 	if (!GM || !GS || !PS) return;
 
 	// 충분한 칩이 있는지 확인
-	int32 CallAmount = GS->CurrentMaxBet - PS->CurrentBet;
-	if (PS->CurrentChips < CallAmount)
+	int32 CallAmount = GS->CurrentMaxBet - PS->GetCurrentBet();
+	if (PS->GetCurrentChips() < CallAmount)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Server_Call] Not enough chips!"));
 		return;
@@ -276,10 +276,10 @@ void AMyPlayerController::Server_Raise_Implementation()
 	// Raise 후 새로운 MaxBet 계산
 	int32 NewMaxBet = GS->CurrentMaxBet + BettingUnit;
 	// 내가 추가로 내야할 금액
-	int32 AdditionalAmount = NewMaxBet - PS->CurrentBet;
+	int32 AdditionalAmount = NewMaxBet - PS->GetCurrentBet();
 	
 	// 충분한 칩이 있는지 확인
-	if (PS->CurrentChips < AdditionalAmount)
+	if (PS->GetCurrentChips() < AdditionalAmount)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Server_Raise] Not enough chips!"));
 		return;

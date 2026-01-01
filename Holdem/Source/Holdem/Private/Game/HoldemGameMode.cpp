@@ -156,8 +156,8 @@ void AHoldemGameMode::StartPreFlop()
 			{
 				if (AHoldemPlayerState* SB = Cast<AHoldemPlayerState>(GS->PlayerArray[SBIndex]))
 				{
-					SB->CurrentChips -= GS->SmallBlindAmount;
-					SB->CurrentBet = GS->SmallBlindAmount;
+					SB->SetCurrentChips(SB->GetCurrentChips() - GS->SmallBlindAmount);
+					SB->SetCurrentBet(GS->SmallBlindAmount);
 					GS->CurrentMaxBet = GS->SmallBlindAmount;
 					UE_LOG(LogTemp, Warning, TEXT("[Blind] %s posted Small Blind: %d"),
 						*SB->GetPlayerName(), GS->SmallBlindAmount);
@@ -169,8 +169,8 @@ void AHoldemGameMode::StartPreFlop()
 			{
 				if (AHoldemPlayerState* BB = Cast<AHoldemPlayerState>(GS->PlayerArray[BBIndex]))
 				{
-					BB->CurrentChips -= GS->BigBlindAmount;
-					BB->CurrentBet = GS->BigBlindAmount;
+					BB->SetCurrentChips(BB->GetCurrentChips() - GS->BigBlindAmount); 
+					BB->SetCurrentBet(GS->BigBlindAmount);
 					GS->CurrentMaxBet = GS->BigBlindAmount;
 					UE_LOG(LogTemp, Warning, TEXT("[Blind] %s posted Big Blind: %d"),
 						*BB->GetPlayerName(), GS->BigBlindAmount);
@@ -230,7 +230,7 @@ void AHoldemGameMode::StartShowdown()
 		for (auto PS : GS->PlayerArray)
 		{
 			AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
-			if (Player && !Player->bIsFolded)
+			if (Player && !Player->GetIsFolded())
 				ActivePlayers.Add(Player);
 		}
 
@@ -282,7 +282,7 @@ void AHoldemGameMode::StartShowdown()
 			AHoldemPlayerState* Winner = Cast<AHoldemPlayerState>(Winners[0]);
 			if (Winner)
 			{
-				Winner->CurrentChips += GS->TotalPot;
+				Winner->SetCurrentChips(Winner->GetCurrentChips() + GS->TotalPot);
 				UE_LOG(LogTemp, Warning, TEXT("[Chip Distribution] %s wins %d chips!"),
 					*Winner->GetPlayerName(), GS->TotalPot);
 			}
@@ -299,7 +299,7 @@ void AHoldemGameMode::StartShowdown()
 			AHoldemPlayerState* TempWinner = Cast<AHoldemPlayerState>(Winners[0]);
 			if (TempWinner)
 			{
-				TempWinner->CurrentChips += GS->TotalPot;
+				TempWinner->SetCurrentChips(TempWinner->GetCurrentChips() + GS->TotalPot);
 				UE_LOG(LogTemp, Warning, TEXT("[Chip Distribution] %s wins %d chips!"),
 					*TempWinner->GetPlayerName(), GS->TotalPot);
 			}
@@ -354,7 +354,7 @@ void AHoldemGameMode::StartBettingRound()
 		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(
 			GS->PlayerArray[GS->CurrentTurnPlayerIndex]);
 
-		if (Player && !Player->bIsFolded) break;
+		if (Player && !Player->GetIsFolded()) break;
 
 		GS->CurrentTurnPlayerIndex++;
 	}
@@ -376,14 +376,14 @@ bool AHoldemGameMode::IsBettingRoundComplete()
 	for (APlayerState* PS : GS->PlayerArray)
 	{
 		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
-		if (Player && !Player->bIsFolded)
+		if (Player && !Player->GetIsFolded())
 		{
 			ActivePlayers++;
 
 			// 조건 1 : 액션하지 않은 플레이어 있으면
 			if (!Player->bHasActedThisRound) return false;
 			// 조건 2 : 베팅액이 최고액과 다르면 아직 안끝남
-			if (Player->CurrentBet != GS->CurrentMaxBet) return false;
+			if (Player->GetCurrentBet() != GS->CurrentMaxBet) return false;
 		}
 	}
 
@@ -451,7 +451,7 @@ void AHoldemGameMode::MoveToNextPlayer()
 			GS->PlayerArray[GS->CurrentTurnPlayerIndex]);
 
 		// Fold하지 않은 플레이어 찾으면 종료
-		if (NextPlayer && !NextPlayer->bIsFolded)
+		if (NextPlayer && !NextPlayer->GetIsFolded())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[MoveToNextPlayer] Next turn: Player %d (%s)"),
 								GS->CurrentTurnPlayerIndex, *NextPlayer->GetPlayerName());
@@ -481,10 +481,10 @@ void AHoldemGameMode::PrepareNextRound()
 		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
 		if (Player)
 		{
-			Player->bIsFolded = false;
+			Player->SetIsFolded(false);
 			Player->bHasActedThisRound = false;
-			Player->CurrentBet = 0;
-			Player->TotalBet = 0;
+			Player->SetCurrentBet(0);
+			Player->SetTotalBet(0);
 			Player->ClearHand();
 			// TODO: 아이템도 없애야 함 + 아이템 또 스폰되지 않도록 처리
 		}
