@@ -39,9 +39,9 @@ public:
 	// 들고 있는 물체를 고정시킬 위치
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USceneComponent* HoldPosition;
-	// 플레이어 이름 표시
+	// 다른 플레이어에게 공개되는 정보 UI
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UWidgetComponent* NameTag;
+	class UWidgetComponent* OtherPlayerInfo;
 
 public:
 	// UI
@@ -86,11 +86,11 @@ public:
 
 protected:
 	// NameTag
-	void BillboardNameTag();
+	void BillboardOtherPlayerInfo();
 
 	// Steam 정보 업데이트용 타이머
-	FTimerHandle NameTagTimerHandle;
-	void TryUpdateNameTag();
+	FTimerHandle UpdateTimerHandle;
+	void TryUpdateOtherPlayerInfo();
 
 	UFUNCTION(Client, Reliable)
 	void Client_OnPossess();

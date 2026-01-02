@@ -15,7 +15,7 @@
 #include "Net/UnrealNetwork.h"
 #include "UI/BarWidget.h"
 #include "UI/MyPlayerWidget.h"
-#include "UI/NameTagWidget.h"
+#include "UI/OtherPlayerWidget.h"
 
 // Sets default values
 AMyPlayer::AMyPlayer()
@@ -36,9 +36,9 @@ AMyPlayer::AMyPlayer()
 	HoldPosition->SetupAttachment(Camera);
 	HoldPosition->SetRelativeLocation(FVector(100.f, 0.f, 0.f));
 
-	// NameTag 생성
-	NameTag = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTag"));
-	NameTag->SetupAttachment(GetRootComponent());
+	// OtherPlayerInfo 생성
+	OtherPlayerInfo = CreateDefaultSubobject<UWidgetComponent>(TEXT("OtherPlayerInfo"));
+	OtherPlayerInfo->SetupAttachment(GetRootComponent());
 	
 	// Default settings
 	SpringArm->SetRelativeLocation(FVector(0.000000,0.000000,40.000000));
@@ -74,8 +74,8 @@ void AMyPlayer::BeginPlay()
 	}
 	
 	// NameTag 업데이트
-	GetWorld()->GetTimerManager().SetTimer(NameTagTimerHandle, this,
-		&AMyPlayer::TryUpdateNameTag, 0.1f, true);
+	GetWorld()->GetTimerManager().SetTimer(UpdateTimerHandle, this,
+		&AMyPlayer::TryUpdateOtherPlayerInfo, 0.1f, true);
 }
 
 void AMyPlayer::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -97,7 +97,7 @@ void AMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	BillboardNameTag();
+	BillboardOtherPlayerInfo();
 }
 
 // Called to bind functionality to input
@@ -186,17 +186,17 @@ UInteractableComponent* AMyPlayer::DetectInteractable()
 	return nullptr;
 }
 
-void AMyPlayer::BillboardNameTag()
+void AMyPlayer::BillboardOtherPlayerInfo()
 {
 	// 내가 컨트롤하고 있는 카메라를 가져오자.
 	AActor* cam = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
 	// 카메라의 앞 방향 (반대), 윗 방향을 이용해서 Rotator 를 구하자.
 	FRotator rot = UKismetMathLibrary::MakeRotFromXZ(-cam->GetActorForwardVector(), cam->GetActorUpVector());
 	// 구한 Rotator 를 comHP 에 설정
-	NameTag->SetWorldRotation(rot);
+	OtherPlayerInfo->SetWorldRotation(rot);
 }
 
-void AMyPlayer::TryUpdateNameTag()
+void AMyPlayer::TryUpdateOtherPlayerInfo()
 {
 	AHoldemPlayerState* PS = Cast<AHoldemPlayerState>(GetPlayerState());
 	if (!PS) return;
@@ -209,17 +209,17 @@ void AMyPlayer::TryUpdateNameTag()
 			return;
 	}
 
-	UNameTagWidget* Tag = Cast<UNameTagWidget>(NameTag->GetWidget());
-	if (Tag)
+	UOtherPlayerWidget* OtherPlayerWidget = Cast<UOtherPlayerWidget>(OtherPlayerInfo->GetWidget());
+	if (OtherPlayerWidget)
 	{
-		Tag->SetName(DisplayName);
+		OtherPlayerWidget->SetName(DisplayName);
 
-		GetWorld()->GetTimerManager().ClearTimer(NameTagTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(UpdateTimerHandle);
 	}
 }
 
 void AMyPlayer::Client_OnPossess_Implementation()
 {
-	NameTag->SetVisibility(false);
+	OtherPlayerInfo->SetVisibility(false);
 }
 

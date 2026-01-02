@@ -97,7 +97,9 @@ void UMainMenuWidget::OnClicked_Host()
 		SessionName = TEXT("Unknown");
 	}
 
-	GI->CreateMySession(SessionName);
+	// 이름을 33자로 제한
+	FString TrimmedName = SessionName.Left(33);
+	GI->CreateMySession(TrimmedName);
 }
 
 void UMainMenuWidget::OnClicked_Join()

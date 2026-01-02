@@ -161,8 +161,10 @@ void UMyPlayerWidget::UpdatePlayerName()
 	{
 		DisplayName = PS->GetPlayerName();
 	}
-	
-	Txt_PlayerName->SetText(FText::FromString(DisplayName));
+
+	// 이름을 33자로 제한
+	FString TrimmedName = DisplayName.Left(33);
+	Txt_PlayerName->SetText(FText::FromString(TrimmedName));
 }
 
 void UMyPlayerWidget::UpdateSteamInfo(FString InSteamID, FString InSteamName)

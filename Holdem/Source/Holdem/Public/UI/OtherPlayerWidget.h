@@ -1,0 +1,35 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "OtherPlayerWidget.generated.h"
+
+/**
+ * 상대 플레이어에게 보여지는 자신의 정보
+ * 이 UI는 자기 자신에게는 안보임
+ */
+UCLASS()
+class HOLDEM_API UOtherPlayerWidget : public UUserWidget
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Txt_Name;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Txt_CurrentChips;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Txt_CurrentBet;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Txt_TotalBet;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Txt_Position;
+
+	void SetName(FString InName);
+};
