@@ -56,7 +56,7 @@ void UHoldemGameInstance::CreateMySession(FString displayName)
 	// 세션 검색 허용 여부
 	sessionSettings.bShouldAdvertise = true;
 	// 세션 최대 참여 인원 설정 (임시로 6명)
-	sessionSettings.NumPublicConnections = 6;
+	sessionSettings.NumPublicConnections = 4;
 	// 커스텀 정보
 	// displayName 을 Base64 로 변환
 	displayName = StringBase64Encode(displayName);
@@ -116,7 +116,15 @@ void UHoldemGameInstance::OnFindSessionComplete(bool bWasSuccessful)
 		{
 			// 방 제목 이름 담을 변수
 			FString displayName;
-			results[i].Session.SessionSettings.Get(FName(TEXT("DP_NAME")), displayName);
+			bool bHasDisplayName = results[i].Session.SessionSettings.Get(FName(TEXT("DP_NAME")), displayName);
+
+			// DP_NAME 없는 세션은 스킵
+			if (!bHasDisplayName || displayName.IsEmpty())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("세션 %d - DP_NAME 없음, 스킵"), i);
+				continue;
+			}
+
 			// displayName 을 UTF8 string 으로 변환
 			displayName = StringBase64Decode(displayName);
 

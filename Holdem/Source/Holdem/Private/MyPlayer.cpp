@@ -55,40 +55,27 @@ void AMyPlayer::BeginPlay()
 	Super::BeginPlay();
 
 	// UI 추가
-	if (PlayerWidgetClass)
+	if (IsLocallyControlled())
 	{
-		PlayerWidget = CreateWidget<UMyPlayerWidget>(GetWorld(), PlayerWidgetClass);
-		if (PlayerWidget)
+		if (PlayerWidgetClass)
 		{
-			PlayerWidget->AddToViewport();
+			PlayerWidget = CreateWidget<UMyPlayerWidget>(GetWorld(), PlayerWidgetClass);
+			if (PlayerWidget)
+			{
+				PlayerWidget->AddToViewport();
+			}
 		}
-	}
 
-	if (BarWidgetClass)
-	{
-		BarWidget = CreateWidget<UBarWidget>(GetWorld(), BarWidgetClass);
-		IsValid(BarWidget);
+		if (BarWidgetClass)
+		{
+			BarWidget = CreateWidget<UBarWidget>(GetWorld(), BarWidgetClass);
+			IsValid(BarWidget);
+		}
 	}
 	
 	// NameTag 업데이트
-	UNameTagWidget* Tag = Cast<UNameTagWidget>(NameTag->GetWidget());
-	if (Tag)
-	{
-		APlayerController* PC = Cast<APlayerController>(GetController());
-		if (PC)
-		{
-			AHoldemPlayerState* PS = PC->GetPlayerState<AHoldemPlayerState>();
-			if (PS)
-			{
-				FString DisplayName = PS->GetSteamName();
-				if (DisplayName.IsEmpty())
-				{
-					DisplayName = TEXT("Unknown");
-				}
-				Tag->SetName(DisplayName);
-			}
-		}
-	}
+	GetWorld()->GetTimerManager().SetTimer(NameTagTimerHandle, this,
+		&AMyPlayer::TryUpdateNameTag, 0.1f, true);
 }
 
 void AMyPlayer::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -207,6 +194,31 @@ void AMyPlayer::BillboardNameTag()
 	FRotator rot = UKismetMathLibrary::MakeRotFromXZ(-cam->GetActorForwardVector(), cam->GetActorUpVector());
 	// 구한 Rotator 를 comHP 에 설정
 	NameTag->SetWorldRotation(rot);
+}
+
+void AMyPlayer::TryUpdateNameTag()
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC) return;
+
+	AHoldemPlayerState* PS = PC->GetPlayerState<AHoldemPlayerState>();
+	if (!PS) return;
+
+	FString DisplayName = PS->GetSteamName();
+	if (DisplayName.IsEmpty())
+	{
+		DisplayName = PS->GetPlayerName();
+		if (DisplayName.IsEmpty())
+			return;
+	}
+
+	UNameTagWidget* Tag = Cast<UNameTagWidget>(NameTag->GetWidget());
+	if (Tag)
+	{
+		Tag->SetName(DisplayName);
+
+		GetWorld()->GetTimerManager().ClearTimer(NameTagTimerHandle);
+	}
 }
 
 void AMyPlayer::Client_OnPossess_Implementation()

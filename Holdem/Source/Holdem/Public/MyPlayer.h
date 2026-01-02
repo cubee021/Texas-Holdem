@@ -88,6 +88,10 @@ protected:
 	// NameTag
 	void BillboardNameTag();
 
+	// Steam 정보 업데이트용 타이머
+	FTimerHandle NameTagTimerHandle;
+	void TryUpdateNameTag();
+
 	UFUNCTION(Client, Reliable)
 	void Client_OnPossess();
 };
