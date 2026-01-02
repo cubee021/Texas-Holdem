@@ -198,10 +198,7 @@ void AMyPlayer::BillboardNameTag()
 
 void AMyPlayer::TryUpdateNameTag()
 {
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (!PC) return;
-
-	AHoldemPlayerState* PS = PC->GetPlayerState<AHoldemPlayerState>();
+	AHoldemPlayerState* PS = Cast<AHoldemPlayerState>(GetPlayerState());
 	if (!PS) return;
 
 	FString DisplayName = PS->GetSteamName();

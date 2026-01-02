@@ -37,7 +37,6 @@ public:
 	AHoldemPlayerState();
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void BeginPlay() override;
 
 public:
 	//---------------------------------------------------//
@@ -97,9 +96,6 @@ public:
 	void SetSteamName(const FString& NewSteamName);
 	FORCEINLINE FString GetSteamID() const {return SteamID;}
 	FORCEINLINE FString GetSteamName() const {return SteamName;}
-
-	// GameInstance에서 Steam 정보 로드
-	void LoadSteamInfoFromGameInstance();
 	
 protected:
 	//---------------------------------------------------//

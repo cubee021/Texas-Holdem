@@ -144,5 +144,13 @@ protected:
 	void CloseItemWidget();
 
 	bool IsItemWidgetOpen() const;
+
+public:
+	//---------------------------------------------------//
+	// Player Info RPC
+	//---------------------------------------------------//
+	// Steam 정보 전송
+	UFUNCTION(Server, Reliable)
+	void Server_SendSteamInfo(const FString& SteamID, const FString& SteamName);
 	
 };

@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "MyPlayer.h"
 #include "Components/InteractableComponent.h"
+#include "Game/HoldemGameInstance.h"
 #include "Game/HoldemGameMode.h"
 #include "Game/HoldemGameState.h"
 #include "Game/HoldemPlayerState.h"
@@ -29,6 +30,21 @@ void AMyPlayerController::BeginPlay()
 	if (GS)
 	{
 		GS->OnPhaseChanged.AddDynamic(this, &AMyPlayerController::OnGamePhaseChanged);
+	}
+
+	// 로컬 플레이어만 실행
+	if (IsLocalController())
+	{
+		// GameInstance에서 Steam 정보 가져오기
+		UHoldemGameInstance* GI = Cast<UHoldemGameInstance>(GetGameInstance());
+		if (GI)
+		{
+			FString SteamID = GI->LocalPlayerSteamID;
+			FString SteamName = GI->LocalPlayerSteamName;
+
+			// Server에 전송
+			Server_SendSteamInfo(SteamID, SteamName);
+		}
 	}
 
 	SetShowMouseCursor(false);
@@ -355,6 +371,22 @@ bool AMyPlayerController::IsItemWidgetOpen() const
 	if (!MyPlayer || !MyPlayer->BarWidget) return false;
 	
 	return MyPlayer->BarWidget->GetVisibility() == ESlateVisibility::Visible;
+}
+
+void AMyPlayerController::Server_SendSteamInfo_Implementation(const FString& SteamID, const FString& SteamName)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[Server] Received Steam Info - ID: %s, Name: %s"),
+			   *SteamID, *SteamName);
+
+	// PlayerState에 설정                                                                                                                                           
+	AHoldemPlayerState* PS = GetPlayerState<AHoldemPlayerState>();
+	if (PS)
+	{
+		PS->SetSteamID(SteamID);
+		PS->SetSteamName(SteamName);
+
+		UE_LOG(LogTemp, Warning, TEXT("[Server] PlayerState updated for %s"), *SteamName);
+	}
 }
 
 void AMyPlayerController::Server_RotateHoldingItem_Implementation(float Value)
