@@ -106,7 +106,7 @@ void AHoldemGameMode::UpdateWaitingTimer()
 
 	if (GS->WaitingTimeRemaining <= 0.f)
 	{
-		if(GS->GetPlayerCount() >= 1)
+		if(GS->GetPlayerCount() >= 2)
 		{
 			// 두 명 이상이면 게임 진행
 			GetWorldTimerManager().ClearTimer(WaitingTimerHandle);
@@ -512,5 +512,5 @@ void AHoldemGameMode::PrepareNextRound()
 	UE_LOG(LogTemp, Warning, TEXT("[PrepareNextRound] All cards destroyed and cleared."));
 	
 	// 다음 판 시작
-	StartPreFlop();
+	StartWaiting();
 }
