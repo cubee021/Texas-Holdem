@@ -81,7 +81,7 @@ public:
 
 protected:
 	//---------------------------------------------------//
-	// Testing
+	// Round Over
 	//---------------------------------------------------//
 	FTimerHandle NextRoundTimerHandle;
 

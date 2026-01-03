@@ -52,6 +52,7 @@ void UMyPlayerWidget::TrySubscribeDeligates()
 		PS->OnCurrentChipsChanged.AddDynamic(this, &UMyPlayerWidget::UpdateCurrentChips);
 		PS->OnPositionChanged.AddDynamic(this, &UMyPlayerWidget::UpdatePosition);
 		PS->OnFoldChanged.AddDynamic(this, &UMyPlayerWidget::UpdateHandRank);
+		PS->OnSpectatingChanged.AddDynamic(this, &UMyPlayerWidget::UpdateSpectating);
 
 		PS->OnSteamInfoChanged.AddDynamic(this, &UMyPlayerWidget::UpdateSteamInfo);
 		
@@ -61,6 +62,7 @@ void UMyPlayerWidget::TrySubscribeDeligates()
 		UpdatePosition(PS->GetPosition());
 		UpdateBettingInfo(PS->GetCurrentBet(), PS->GetTotalBet());
 		UpdateHandRank(PS->GetIsFolded());
+		UpdateSpectating(PS->GetIsSpectating());
 
 		GetWorld()->GetTimerManager().ClearTimer(DeligateTimerHandle);
 
@@ -207,14 +209,37 @@ void UMyPlayerWidget::UpdatePosition(EPlayerPosition NewPosition)
 
 void UMyPlayerWidget::UpdateHandRank(bool bNewIsFolded)
 {
-	// 추후 족보 표시 예정 (지금은 Fold 여부만)
+	// 추후 족보 표시 예정 (지금은 Fold & Spectating 여부만)
+
+	AHoldemPlayerState* PS = GetOwningPlayerState<AHoldemPlayerState>();
+	if (PS && PS->GetIsSpectating()) return;
+	
 	if (bNewIsFolded)
 	{
 		Txt_HandRank->SetText(FText::FromString("Folded"));
+		Txt_HandRank->SetColorAndOpacity(FLinearColor(1.0f, 0.5f, 0.5f, 1.0f));
 	}
 	else
 	{
 		Txt_HandRank->SetText(FText::GetEmpty());
+		Txt_HandRank->SetColorAndOpacity(FLinearColor::White);
+	}
+}
+
+void UMyPlayerWidget::UpdateSpectating(bool bNewIsSpectating)
+{
+	if (!Txt_HandRank) return;
+
+	if (bNewIsSpectating)
+	{
+		Txt_HandRank->SetText(FText::FromString("Spectating"));
+		Txt_HandRank->SetColorAndOpacity(FLinearColor(0.2f, 0.5f, 1.0f, 1.0f));
+	}
+	else
+	{
+		// Playing으로 전환되면 원래대로 복구
+		Txt_HandRank->SetText(FText::GetEmpty());
+		Txt_HandRank->SetColorAndOpacity(FLinearColor::White);
 	}
 }
 

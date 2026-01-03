@@ -34,6 +34,7 @@ void AHoldemPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProper
 
 	DOREPLIFETIME(AHoldemPlayerState, SelectedItem);
 
+	DOREPLIFETIME(AHoldemPlayerState, bIsSpectating);
 	DOREPLIFETIME(AHoldemPlayerState, bIsFolded);
 	DOREPLIFETIME(AHoldemPlayerState, Position);
 
@@ -92,6 +93,11 @@ void AHoldemPlayerState::OnRep_bIsFolded()
 	OnFoldChanged.Broadcast(bIsFolded);
 }
 
+void AHoldemPlayerState::OnRep_IsSpectating()
+{
+	OnSpectatingChanged.Broadcast(bIsSpectating);
+}
+
 void AHoldemPlayerState::SetIsFolded(bool bNewFolded)
 {
 	bIsFolded = bNewFolded;
@@ -109,19 +115,19 @@ void AHoldemPlayerState::OnRep_Position()
 	OnPositionChanged.Broadcast(Position);
 }
 
+void AHoldemPlayerState::SetIsSpectating(bool bNewIsSpectating)
+{
+	bIsSpectating = bNewIsSpectating;
+	OnSpectatingChanged.Broadcast(bIsSpectating);
+}
+
 void AHoldemPlayerState::OnRep_CurrentChips()
 {
-	// UE_LOG(LogTemp, Warning, TEXT("[%s] OnRep_CurrentChips: %d"),
-	// 		 *GetPlayerName(), CurrentChips);
-	
 	OnCurrentChipsChanged.Broadcast(CurrentChips);
 }
 
 void AHoldemPlayerState::SetCurrentChips(int32 NewChips)
 {
-	// UE_LOG(LogTemp, Warning, TEXT("[%s] SetCurrentChips: %d (HasAuthority: %d)"),
-	// 		  *GetPlayerName(), NewChips, HasAuthority());
-	
 	CurrentChips = NewChips;
 	OnCurrentChipsChanged.Broadcast(CurrentChips);
 }

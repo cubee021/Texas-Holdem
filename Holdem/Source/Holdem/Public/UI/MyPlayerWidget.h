@@ -116,5 +116,7 @@ public:
 	
 	UFUNCTION()
 	void UpdateHandRank(bool bNewIsFolded);
-	
+
+	UFUNCTION()
+	void UpdateSpectating(bool bNewIsSpectating);
 };

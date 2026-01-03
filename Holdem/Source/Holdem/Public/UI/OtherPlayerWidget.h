@@ -47,4 +47,7 @@ public:
 
 	UFUNCTION()
 	void UpdateIsFold(bool bNewIsFolded);
+
+	UFUNCTION()
+	void UpdateSpectating(bool bNewIsSpectating);
 };

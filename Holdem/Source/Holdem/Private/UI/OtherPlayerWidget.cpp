@@ -14,6 +14,7 @@ void UOtherPlayerWidget::GetOwningPlayerState(class AHoldemPlayerState* PS)
 		PS->OnBettingInfoChanged.AddDynamic(this, &UOtherPlayerWidget::UpdateBettingInfo);
 		PS->OnPositionChanged.AddDynamic(this, &UOtherPlayerWidget::UpdatePosition);
 		PS->OnFoldChanged.AddDynamic(this, &UOtherPlayerWidget::UpdateIsFold);
+		PS->OnSpectatingChanged.AddDynamic(this, &UOtherPlayerWidget::UpdateSpectating);
 
 		// 초기값 설정
 		FString DisplayName = PS->GetSteamName();
@@ -27,6 +28,7 @@ void UOtherPlayerWidget::GetOwningPlayerState(class AHoldemPlayerState* PS)
 		UpdateBettingInfo(PS->GetCurrentBet(), PS->GetTotalBet());
 		UpdatePosition(PS->GetPosition());
 		UpdateIsFold(PS->GetIsFolded());
+		UpdateSpectating(PS->GetIsSpectating());
 	}
 	else
 	{
@@ -78,6 +80,7 @@ void UOtherPlayerWidget::UpdatePosition(EPlayerPosition NewPosition)
 	}
 
 	Txt_Position->SetText(FText::FromString(PositionText));
+	Txt_Position->SetColorAndOpacity(FLinearColor::White);
 }
 
 void UOtherPlayerWidget::UpdateIsFold(bool bNewIsFolded)
@@ -88,5 +91,23 @@ void UOtherPlayerWidget::UpdateIsFold(bool bNewIsFolded)
 	if (bNewIsFolded)
 	{
 		Txt_Position->SetText(FText::FromString("Fold"));
+		Txt_Position->SetColorAndOpacity(FLinearColor(1.0f, 0.5f, 0.5f, 1.0f)); 
+	}
+}
+
+void UOtherPlayerWidget::UpdateSpectating(bool bNewIsSpectating)
+{
+	if (!Txt_Position) return;
+
+	if (bNewIsSpectating)
+	{
+		Txt_Position->SetText(FText::FromString("Spectating"));
+		Txt_Position->SetColorAndOpacity(FLinearColor(0.2f, 0.5f, 1.0f, 1.0f));
+	}
+	else
+	{
+		// Playing으로 전환되면 원래대로 복구
+		Txt_Position->SetText(FText::GetEmpty());
+		Txt_Position->SetColorAndOpacity(FLinearColor::White);
 	}
 }

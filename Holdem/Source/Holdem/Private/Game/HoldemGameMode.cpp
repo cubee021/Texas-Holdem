@@ -30,8 +30,25 @@ void AHoldemGameMode::PostLogin(APlayerController* NewPlayer)
 		if (AHoldemPlayerState* PS = NewPlayer->GetPlayerState<AHoldemPlayerState>())
 		{
 			PS->SeatIndex = GS->PlayerArray.Find(PS);
-			UE_LOG(LogTemp, Warning, TEXT("[PostLogin] %s assigned SeatIndex: %d"),
-								*PS->GetPlayerName(), PS->SeatIndex);
+
+			// 현재 Phase에 따라 관전 여부 설정
+			if (GS->CurrentPhase == EHoldemPhase::Waiting)
+			{
+				// 바로 참여
+				PS->SetIsSpectating(false);
+				UE_LOG(LogTemp, Warning, TEXT("[PostLogin] %s joined during Waiting - Playing mode"),
+					*PS->GetPlayerName());
+			}
+			else
+			{
+				// 관전
+				PS->SetIsSpectating(true);
+				UE_LOG(LogTemp, Warning, TEXT("[PostLogin] %s joined during game - Spectating mode"),
+					*PS->GetPlayerName());
+			}
+			
+			// UE_LOG(LogTemp, Warning, TEXT("[PostLogin] %s assigned SeatIndex: %d"),
+			// 					*PS->GetPlayerName(), PS->SeatIndex);
 		}
 		
 		// 플레이어 수 확인
@@ -236,6 +253,23 @@ void AHoldemGameMode::StartShowdown()
 				ActivePlayers.Add(Player);
 		}
 
+		// 1명 제외 모두 Fold 시, DetermineWinner() 호출 안 함
+		if (ActivePlayers.Num() == 1)
+		{
+			AHoldemPlayerState* Winner = Cast<AHoldemPlayerState>(ActivePlayers[0]);
+			if (Winner)
+			{
+				Winner->SetCurrentChips(Winner->GetCurrentChips() + GS->TotalPot);
+				UE_LOG(LogTemp, Warning, TEXT("[Showdown] %s wins by default - %d chips"),
+					*Winner->GetPlayerName(), GS->TotalPot);
+			}
+
+			GS->RotateDealer();
+			GetWorldTimerManager().SetTimer(NextRoundTimerHandle, this,
+				&AHoldemGameMode::PrepareNextRound, 3.0f, false);
+			return;
+		}
+
 		// 승자 판정 
 		TArray<APlayerState*> Winners = GS->DetermineWinner(ActivePlayers);
 
@@ -350,13 +384,13 @@ void AHoldemGameMode::StartBettingRound()
 	// 첫번째 턴 플레이어 설정
 	GS->CurrentTurnPlayerIndex = GS->GetFirstPlayerIndex();
 
-	// Fold한 플레이어 스킵
+	// Fold한 플레이어 + 관전중인 플레이어 스킵
 	while (GS->CurrentTurnPlayerIndex < GS->PlayerArray.Num())
 	{
 		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(
 			GS->PlayerArray[GS->CurrentTurnPlayerIndex]);
 
-		if (Player && !Player->GetIsFolded()) break;
+		if (Player && !Player->GetIsFolded() && !Player->GetIsSpectating()) break;
 
 		GS->CurrentTurnPlayerIndex++;
 	}
@@ -378,10 +412,22 @@ bool AHoldemGameMode::IsBettingRoundComplete()
 	for (APlayerState* PS : GS->PlayerArray)
 	{
 		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
-		if (Player && !Player->GetIsFolded())
+		if (Player && !Player->GetIsFolded() && !Player->GetIsSpectating())
 		{
 			ActivePlayers++;
+		}
+	}
 
+	if (ActivePlayers <= 1)
+	{
+		return true;
+	}
+
+	for (APlayerState* PS : GS->PlayerArray)
+	{
+		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
+		if (Player && !Player->GetIsFolded() && !Player->GetIsSpectating())
+		{
 			// 조건 1 : 액션하지 않은 플레이어 있으면
 			if (!Player->bHasActedThisRound) return false;
 			// 조건 2 : 베팅액이 최고액과 다르면 아직 안끝남
@@ -410,7 +456,7 @@ void AHoldemGameMode::MoveToNextPlayer()
 		for (APlayerState* PS : GS->PlayerArray)
 		{
 			AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
-			if (Player && !Player->GetIsFolded())
+			if (Player && !Player->GetIsFolded() && !Player->GetIsSpectating())
 				ActivePlayers++;
 		}
 
@@ -460,7 +506,7 @@ void AHoldemGameMode::MoveToNextPlayer()
 			GS->PlayerArray[GS->CurrentTurnPlayerIndex]);
 
 		// Fold하지 않은 플레이어 찾으면 종료
-		if (NextPlayer && !NextPlayer->GetIsFolded())
+		if (NextPlayer && !NextPlayer->GetIsFolded() && !NextPlayer->GetIsSpectating())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[MoveToNextPlayer] Next turn: Player %d (%s)"),
 								GS->CurrentTurnPlayerIndex, *NextPlayer->GetPlayerName());
@@ -490,6 +536,14 @@ void AHoldemGameMode::PrepareNextRound()
 		AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
 		if (Player)
 		{
+			// 관전 모드 풀기 -> 다음 라운드 참여
+			if (Player->GetIsSpectating())
+			{
+				Player->SetIsSpectating(false);
+				UE_LOG(LogTemp, Warning, TEXT("[PrepareNextRound] %s is now Playing!"),
+					  *Player->GetPlayerName());
+			}
+			
 			Player->SetIsFolded(false);
 			Player->bHasActedThisRound = false;
 			Player->SetCurrentBet(0);

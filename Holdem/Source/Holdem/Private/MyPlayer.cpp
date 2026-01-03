@@ -3,7 +3,6 @@
 
 #include "MyPlayer.h"
 
-#include "MyPlayerSaveGame.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InteractableComponent.h"
@@ -23,6 +22,10 @@ AMyPlayer::AMyPlayer()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// 의자 Mesh
+	ChairMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	ChairMesh->SetupAttachment(RootComponent);
+	
 	// SpringArm 생성 및 설정
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
@@ -41,7 +44,10 @@ AMyPlayer::AMyPlayer()
 	OtherPlayerInfo->SetupAttachment(GetRootComponent());
 	
 	// Default settings
-	SpringArm->SetRelativeLocation(FVector(0.000000,0.000000,40.000000));
+	ChairMesh->SetRelativeLocationAndRotation(FVector(0.0,0.0,-80.0),
+		FRotator(0.0,-89.999999,0.0));
+	
+	SpringArm->SetRelativeLocation(FVector(0.0,0.0,40.0));
 	SpringArm->TargetArmLength = 300.0f;
 	SpringArm->bUsePawnControlRotation = true;
 
@@ -73,9 +79,19 @@ void AMyPlayer::BeginPlay()
 		}
 	}
 	
-	// NameTag 업데이트
+	// OtherPlayerWidget 업데이트
 	GetWorld()->GetTimerManager().SetTimer(UpdateTimerHandle, this,
 		&AMyPlayer::TryUpdateOtherPlayerInfo, 0.1f, true);
+
+	// Deligate
+	AHoldemPlayerState* PS = Cast<AHoldemPlayerState>(GetPlayerState());
+	if (PS)
+	{
+		PS->OnSpectatingChanged.AddDynamic(this, &AMyPlayer::AMyPlayer::OnSpectatingChanged);
+
+		// 초기 업데이트
+		UpdateChairMaterialOpacity(PS->GetIsSpectating());
+	}
 }
 
 void AMyPlayer::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -217,6 +233,17 @@ void AMyPlayer::TryUpdateOtherPlayerInfo()
 
 		GetWorld()->GetTimerManager().ClearTimer(UpdateTimerHandle);
 	}
+}
+
+void AMyPlayer::UpdateChairMaterialOpacity(bool bIsSpectating)
+{
+	// 관전 중인 경우, 반투명
+	
+}
+
+void AMyPlayer::OnSpectatingChanged(bool bNewIsSpectating)
+{
+	UpdateChairMaterialOpacity(bNewIsSpectating);
 }
 
 void AMyPlayer::Client_OnPossess_Implementation()

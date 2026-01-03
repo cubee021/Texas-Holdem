@@ -149,6 +149,9 @@ void AHoldemGameState::DealPreflopToPlayers()
 		AHoldemPlayerState* PS = Cast<AHoldemPlayerState>(PlayerState);
 		if (PS)
 		{
+			// 관전 중일 경우, 카드 배분 제외
+			if (PS->GetIsSpectating()) continue;
+			
 			PS->ClearHand();
 
 			FVector FirstCardLoc, SecondCardLoc;
@@ -532,6 +535,9 @@ void AHoldemGameState::SpawnPlayerItem()
 		AHoldemPlayerState* PS = Cast<AHoldemPlayerState>(PlayerState);
 		if (PS)
 		{
+			// 관전 중일 경우 스킵
+			if (PS->GetIsSpectating()) continue;
+			
 			// None 타입이면 스킵
 			if (PS->SelectedItem == EItemType::None) continue;
 

@@ -24,6 +24,8 @@ enum class EPlayerPosition : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBettingInfoChanged, int32, NewCurrentBet, int32, NewTotalBet);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentChipsChanged, int32, NewChips);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPositionChanged, EPlayerPosition, NewPosition);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpectatingChanged, bool, bNewIsSpectating);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFoldChanged, bool, bNewIsFolded);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSteamInfoChanged, FString, SteamID, FString, SteamName);
@@ -101,6 +103,13 @@ protected:
 	//---------------------------------------------------//
 	// Game State
 	//---------------------------------------------------//
+	// 관전 모드 여부
+	UPROPERTY(ReplicatedUsing=OnRep_IsSpectating, BlueprintReadOnly, Category = "Game")
+	bool bIsSpectating = false;
+
+	UFUNCTION()
+	void OnRep_IsSpectating();
+
 	// 폴드 여부
 	UPROPERTY(ReplicatedUsing=OnRep_bIsFolded, BlueprintReadOnly, Category = "Game")
 	bool bIsFolded = false;
@@ -117,9 +126,11 @@ protected:
 	
 public:
 	// Getters & Setters
+	void SetIsSpectating(bool bNewIsSpectating);
 	void SetIsFolded(bool bNewFolded);
 	void SetPosition(EPlayerPosition NewPosition);
 
+	FORCEINLINE bool GetIsSpectating() const {return bIsSpectating;}
 	FORCEINLINE bool GetIsFolded() const {return bIsFolded;}
 	FORCEINLINE EPlayerPosition GetPosition() const {return Position;}
 	
@@ -184,6 +195,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnPositionChanged OnPositionChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnSpectatingChanged OnSpectatingChanged;
+	
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnFoldChanged OnFoldChanged;
 

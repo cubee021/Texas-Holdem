@@ -30,6 +30,9 @@ public:
 
 public:
 	// Components
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	class UStaticMeshComponent* ChairMesh;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class USpringArmComponent* SpringArm;
 
@@ -85,7 +88,8 @@ public:
 	UInteractableComponent* DetectInteractable();
 
 protected:
-	// NameTag
+	// OtherPlayerInfo
+	// 내 정보가 다른 플레이어에게 보이도록 디스플레이
 	void BillboardOtherPlayerInfo();
 
 	// Steam 정보 업데이트용 타이머
@@ -94,4 +98,12 @@ protected:
 
 	UFUNCTION(Client, Reliable)
 	void Client_OnPossess();
+
+protected:
+	// Spectating Effect
+	// ChairMesh 투명도 조절
+	void UpdateChairMaterialOpacity(bool bIsSpectating);
+	// PlayerState deligate 콜백
+	UFUNCTION()
+	void OnSpectatingChanged(bool bNewIsSpectating);
 };
