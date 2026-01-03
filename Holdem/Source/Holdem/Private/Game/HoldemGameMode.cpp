@@ -389,13 +389,6 @@ bool AHoldemGameMode::IsBettingRoundComplete()
 		}
 	}
 
-	// 1명만 남기고 모두 Fold한 경우, 라운드 종료
-	if (ActivePlayers <= 1)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[IsBettingRoundComplete] Only 1 active player left!"));
-		return true;
-	}
-
 	// 모든 조건 만족 → 베팅 라운드 완료!
 	UE_LOG(LogTemp, Warning, TEXT("[IsBettingRoundComplete] Betting round complete!"));
 	return true;
@@ -410,8 +403,22 @@ void AHoldemGameMode::MoveToNextPlayer()
 	{
 		GS->CollectBetsIntoPot();
 		GS->CurrentTurnPlayerIndex = -1;
-		//
 		GS->OnTurnChanged.Broadcast(-1);
+
+		// 한 명 빼고 Fold일 경우, 라운드 종료
+		int32 ActivePlayers = 0;
+		for (APlayerState* PS : GS->PlayerArray)
+		{
+			AHoldemPlayerState* Player = Cast<AHoldemPlayerState>(PS);
+			if (Player && !Player->GetIsFolded())
+				ActivePlayers++;
+		}
+
+		if (ActivePlayers <= 1)
+		{
+			StartShowdown();
+			return;
+		}
 		
 		// 다음 Phase로 전환
 		switch (GS->CurrentPhase)
