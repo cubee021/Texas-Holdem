@@ -271,6 +271,8 @@ public:
 	// Dealer 포지션 설정
 	UFUNCTION(BlueprintCallable, Category = "Betting")
 	void RotateDealer();
+	// Position UI 업데이트
+	void AssignPositions();
 	
 public:
 	//---------------------------------------------------//

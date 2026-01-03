@@ -490,8 +490,37 @@ void AHoldemGameState::RotateDealer()
 	// Dealer 포지션 시계방향으로 회전 (다음 플레이어)
 	DealerPosition = (DealerPosition + 1) % PlayerCount;
 
+	AssignPositions();
+
 	UE_LOG(LogTemp, Warning, TEXT("[RotateDealer] New Dealer position: %d"),
 		DealerPosition);
+}
+
+void AHoldemGameState::AssignPositions()
+{
+	if (PlayerArray.Num() >= 2)
+	{
+		int32 DealerIdx = DealerPosition;
+		int32 SBIdx = GetSmallBlindIndex();
+		int32 BBIdx = GetBigBlindIndex();
+
+		// 모든 플레이어 Position 초기화                                                                                                                              
+		for (int32 i = 0; i < PlayerArray.Num(); i++)
+		{
+			AHoldemPlayerState* PS = Cast<AHoldemPlayerState>(PlayerArray[i]);
+			if (PS)
+			{
+				if (i == DealerIdx)
+					PS->SetPosition(EPlayerPosition::Dealer);
+				else if (i == SBIdx)
+					PS->SetPosition(EPlayerPosition::SmallBlind);
+				else if (i == BBIdx)
+					PS->SetPosition(EPlayerPosition::BigBlind);
+				else                                                                                                                                                  
+					PS->SetPosition(EPlayerPosition::None);
+			}
+		}
+	}
 }
 
 void AHoldemGameState::SpawnPlayerItem()

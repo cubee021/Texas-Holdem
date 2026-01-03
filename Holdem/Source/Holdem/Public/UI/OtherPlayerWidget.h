@@ -16,6 +16,9 @@ class HOLDEM_API UOtherPlayerWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	void GetOwningPlayerState(class AHoldemPlayerState* PS);
+	
+public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Txt_Name;
 
@@ -32,4 +35,16 @@ public:
 	class UTextBlock* Txt_Position;
 
 	void SetName(FString InName);
+
+	UFUNCTION()
+	void UpdateCurrentChips(int32 NewChips);
+
+	UFUNCTION()
+	void UpdateBettingInfo(int32 NewCurrentBet, int32 NewTotalBet);
+
+	UFUNCTION()
+	void UpdatePosition(EPlayerPosition NewPosition);
+
+	UFUNCTION()
+	void UpdateIsFold(bool bNewIsFolded);
 };

@@ -145,6 +145,8 @@ void AHoldemGameMode::StartPreFlop()
 		GS->DealPreflopToPlayers();
 		GS->SpawnPlayerItem();
 
+		GS->AssignPositions();
+
 		// Blind 자동 베팅
 		if (GS->PlayerArray.Num() >= 2)
 		{

@@ -201,18 +201,19 @@ void AMyPlayer::TryUpdateOtherPlayerInfo()
 	AHoldemPlayerState* PS = Cast<AHoldemPlayerState>(GetPlayerState());
 	if (!PS) return;
 
-	FString DisplayName = PS->GetSteamName();
-	if (DisplayName.IsEmpty())
-	{
-		DisplayName = PS->GetPlayerName();
-		if (DisplayName.IsEmpty())
-			return;
-	}
+	// FString DisplayName = PS->GetSteamName();
+	// if (DisplayName.IsEmpty())
+	// {
+	// 	DisplayName = PS->GetPlayerName();
+	// 	if (DisplayName.IsEmpty())
+	// 		return;
+	// }
 
 	UOtherPlayerWidget* OtherPlayerWidget = Cast<UOtherPlayerWidget>(OtherPlayerInfo->GetWidget());
 	if (OtherPlayerWidget)
 	{
-		OtherPlayerWidget->SetName(DisplayName);
+		//OtherPlayerWidget->SetName(DisplayName);
+		OtherPlayerWidget->GetOwningPlayerState(PS);
 
 		GetWorld()->GetTimerManager().ClearTimer(UpdateTimerHandle);
 	}
