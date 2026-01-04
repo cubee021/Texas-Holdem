@@ -21,13 +21,16 @@ enum class EPlayerPosition : uint8
 	BigBlind	UMETA(DisplayName = "BigBlind")
 };
 
+// 누른 베팅 버튼 정보
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBettingActionChanged, FString, BettingAction);
+// 칩 & 베팅액
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBettingInfoChanged, int32, NewCurrentBet, int32, NewTotalBet);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentChipsChanged, int32, NewChips);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPositionChanged, EPlayerPosition, NewPosition);
-
+// 상태
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpectatingChanged, bool, bNewIsSpectating);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFoldChanged, bool, bNewIsFolded);
-
+// 스팀 정보
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSteamInfoChanged, FString, SteamID, FString, SteamName);
 
 UCLASS()
@@ -157,6 +160,13 @@ protected:
 	//---------------------------------------------------//
 	// Betting
 	//---------------------------------------------------//
+	// 마지막 베팅 액션 (Raise, Bet, Call, Check, Fold)
+	UPROPERTY(ReplicatedUsing = OnRep_LastBettingAction, BlueprintReadOnly, Category = "Betting")
+	FString LastBettingAction;
+
+	UFUNCTION()
+	void OnRep_LastBettingAction();
+	
 	// Bet - 현재 라운드에 낼 금액
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentBet, BlueprintReadOnly, Category = "Betting")
 	int32 CurrentBet = 0;
@@ -173,8 +183,10 @@ protected:
 
 public:
 	// Getters & Setters
+	void SetLastBettingAction(const FString& Action);
 	void SetCurrentBet(int32 NewBet);
 	void SetTotalBet(int32 NewTotal);
+	FORCEINLINE FString GetLastBettingAction() const {return LastBettingAction;}
 	FORCEINLINE int32 GetCurrentBet() const {return CurrentBet;}
 	FORCEINLINE int32 GetTotalBet() const {return TotalBet;}
 
@@ -186,6 +198,9 @@ public:
 	//---------------------------------------------------//
 	// Deligates
 	//---------------------------------------------------//
+	UPROPERTY(BlueprintAssignable, Category = "Betting")
+	FOnBettingActionChanged OnBettingActionChanged;
+	
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnBettingInfoChanged OnBettingInfoChanged;
 

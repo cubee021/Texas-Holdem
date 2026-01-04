@@ -64,6 +64,8 @@ void UMyPlayerWidget::TrySubscribeDeligates()
 		UpdateHandRank(PS->GetIsFolded());
 		UpdateSpectating(PS->GetIsSpectating());
 
+		UpdateBettingUIVisibility();
+
 		GetWorld()->GetTimerManager().ClearTimer(DeligateTimerHandle);
 
 		//UE_LOG(LogTemp, Warning, TEXT("[Widget] Delegates subscribed for %s"), *PS->GetPlayerName());

@@ -38,8 +38,8 @@ void AHoldemPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProper
 	DOREPLIFETIME(AHoldemPlayerState, bIsFolded);
 	DOREPLIFETIME(AHoldemPlayerState, Position);
 
+	DOREPLIFETIME(AHoldemPlayerState, LastBettingAction);
 	DOREPLIFETIME(AHoldemPlayerState, CurrentChips);
-
 	DOREPLIFETIME(AHoldemPlayerState, CurrentBet);
 	DOREPLIFETIME(AHoldemPlayerState, TotalBet);
 
@@ -132,6 +132,11 @@ void AHoldemPlayerState::SetCurrentChips(int32 NewChips)
 	OnCurrentChipsChanged.Broadcast(CurrentChips);
 }
 
+void AHoldemPlayerState::OnRep_LastBettingAction()
+{
+	OnBettingActionChanged.Broadcast(LastBettingAction);
+}
+
 void AHoldemPlayerState::OnRep_CurrentBet()
 {
 	OnBettingInfoChanged.Broadcast(CurrentBet, TotalBet);
@@ -140,6 +145,12 @@ void AHoldemPlayerState::OnRep_CurrentBet()
 void AHoldemPlayerState::OnRep_TotalBet()
 {
 	OnBettingInfoChanged.Broadcast(CurrentBet, TotalBet);
+}
+
+void AHoldemPlayerState::SetLastBettingAction(const FString& Action)
+{
+	LastBettingAction = Action;
+	OnBettingActionChanged.Broadcast(LastBettingAction);
 }
 
 void AHoldemPlayerState::SetCurrentBet(int32 NewBet)

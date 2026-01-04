@@ -50,4 +50,15 @@ public:
 
 	UFUNCTION()
 	void UpdateSpectating(bool bNewIsSpectating);
+
+public:
+	// 내가 누른 베팅 버튼이 뭔지 알려줌
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Txt_BettingState;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	class UWidgetAnimation* FadeOut;
+
+	UFUNCTION()
+	void ShowBettingAction(FString BettingAction);
 };

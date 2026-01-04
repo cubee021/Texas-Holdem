@@ -3,14 +3,12 @@
 
 #include "UI/MainMenuWidget.h"
 
-#include "MyPlayerSaveGame.h"
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Components/WidgetSwitcher.h"
 #include "Game/HoldemGameInstance.h"
-#include "Kismet/GameplayStatics.h"
 #include "UI/CardButtonWidget.h"
 #include "UI/SessionWidget.h"
 
@@ -30,9 +28,6 @@ void UMainMenuWidget::NativeConstruct()
 	// 마우스 커서 보이게
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 	
-	// SignUpCanvas
-	Btn_Confirm->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClicked_Confirm);
-
 	// MainCanvas
 	CardBtn_Host->OnCardButtonClicked.AddUObject(this, &UMainMenuWidget::OnClicked_Host);
 	CardBtn_Join->OnCardButtonClicked.AddUObject(this, &UMainMenuWidget::OnClicked_Join);
@@ -40,44 +35,9 @@ void UMainMenuWidget::NativeConstruct()
 	// JoinCanvas
 	Btn_Update->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClicked_Update);
 	GI->onFindComplete.BindUObject(this, &UMainMenuWidget::OnFindComplete);
-	
-	// 세이브 파일 확인
-	UMyPlayerSaveGame* SG = Cast<UMyPlayerSaveGame>(
-		UGameplayStatics::LoadGameFromSlot(TEXT("PlayerDataSlot"), 0));
 
-	// 만약 세이브 파일 없거나 이름 누락이면 SignUpCanvas로, 있으면 바로 메인으로
-	if (SG && !SG->PlayerName.IsEmpty())
-	{
-		WidgetSwitcher->SetActiveWidgetIndex(1);
-	}
-	else
-	{
-		WidgetSwitcher->SetActiveWidgetIndex(0);
-	}
-}
-
-void UMainMenuWidget::OnClicked_Confirm()
-{
-	FString InputName = EdtTxt_Name->GetText().ToString();
-
-	// 빈 문자열인지 체크
-	if (InputName.IsEmpty()) return;
-
-	// 세이브 파일 생성
-	UMyPlayerSaveGame* NewSG = Cast<UMyPlayerSaveGame>(
-		UGameplayStatics::CreateSaveGameObject(UMyPlayerSaveGame::StaticClass()));
-
-	// InputName을 save 파일에 로컬로 저장
-	if (NewSG)
-	{
-		NewSG->PlayerName = InputName;
-
-		// 저장 성공하면 MainCanvas로
-		if (UGameplayStatics::SaveGameToSlot(NewSG, NewSG->GetSaveSlotName(), NewSG->GetUserIdx()))
-		{
-			WidgetSwitcher->SetActiveWidgetIndex(1);
-		}
-	}
+	// Init
+	WidgetSwitcher->SetActiveWidgetIndex(0);
 }
 
 void UMainMenuWidget::UpdateSteamName(FString InName)

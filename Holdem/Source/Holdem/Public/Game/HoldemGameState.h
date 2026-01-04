@@ -65,7 +65,7 @@ public:
 
 	// 최대 플레이어 수
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 MaxPlayers = 6;
+	int32 MaxPlayers = 4;
 
 public:
 	//---------------------------------------------------//
@@ -119,7 +119,7 @@ public:
 	float WaitingTimeRemaining;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GamePhase")
-	float WaitingDuration = 15.f;
+	float WaitingDuration = 10.f;
 
 	// PreFlop - 플레이어당 2장씩 카드 배분
 	UFUNCTION(BlueprintCallable, Category = "GamePhase")

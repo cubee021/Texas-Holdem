@@ -15,7 +15,8 @@ void UOtherPlayerWidget::GetOwningPlayerState(class AHoldemPlayerState* PS)
 		PS->OnPositionChanged.AddDynamic(this, &UOtherPlayerWidget::UpdatePosition);
 		PS->OnFoldChanged.AddDynamic(this, &UOtherPlayerWidget::UpdateIsFold);
 		PS->OnSpectatingChanged.AddDynamic(this, &UOtherPlayerWidget::UpdateSpectating);
-
+		PS->OnBettingActionChanged.AddDynamic(this, &UOtherPlayerWidget::ShowBettingAction);
+		
 		// 초기값 설정
 		FString DisplayName = PS->GetSteamName();
 		if (DisplayName.IsEmpty())
@@ -29,6 +30,8 @@ void UOtherPlayerWidget::GetOwningPlayerState(class AHoldemPlayerState* PS)
 		UpdatePosition(PS->GetPosition());
 		UpdateIsFold(PS->GetIsFolded());
 		UpdateSpectating(PS->GetIsSpectating());
+
+		Txt_BettingState->SetRenderOpacity(0.f);
 	}
 	else
 	{
@@ -110,4 +113,15 @@ void UOtherPlayerWidget::UpdateSpectating(bool bNewIsSpectating)
 		Txt_Position->SetText(FText::GetEmpty());
 		Txt_Position->SetColorAndOpacity(FLinearColor::White);
 	}
+}
+
+void UOtherPlayerWidget::ShowBettingAction(FString BettingAction)
+{
+	if (!Txt_BettingState || !FadeOut) return;
+	if(BettingAction.IsEmpty()) return;
+
+	Txt_BettingState->SetText(FText::FromString(BettingAction));
+
+	Txt_BettingState->SetRenderOpacity(1.0f);
+	PlayAnimation(FadeOut);
 }

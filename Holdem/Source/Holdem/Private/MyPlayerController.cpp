@@ -235,6 +235,7 @@ void AMyPlayerController::Server_Check_Implementation()
 
 	// 체크 처리 후, 다음 플레이어로 이동
 	GS->ProcessCheck(PS);
+	PS->SetLastBettingAction("Check");
 	GM->MoveToNextPlayer();
 }
 
@@ -249,6 +250,7 @@ void AMyPlayerController::Server_Fold_Implementation()
 
 	// 폴드 처리 후, 다음 플레이어로 이동
 	GS->ProcessFold(PS);
+	PS->SetLastBettingAction("Fold");
 	GM->MoveToNextPlayer();
 }
 
@@ -271,6 +273,7 @@ void AMyPlayerController::Server_Call_Implementation()
 
 	// 콜 처리 후, 다음 플레이어로 이동
 	GS->ProcessCall(PS);
+	PS->SetLastBettingAction("Call");
 	GM->MoveToNextPlayer();
 }
 
@@ -302,7 +305,9 @@ void AMyPlayerController::Server_Raise_Implementation()
 	}
 
 	// 레이즈 처리 후, 다음 플레이어로 이동
+	bool bNoBets = (NewMaxBet == BettingUnit);
 	GS->ProcessRaise(PS);
+	PS->SetLastBettingAction(bNoBets ? "Bet" : "Raise");
 	GM->MoveToNextPlayer();
 }
 
@@ -314,10 +319,6 @@ bool AMyPlayerController::IsMyTurn() const
 
 	return GS->CurrentTurnPlayerIndex == PS->SeatIndex;
 	
-	// int32 MyIndex = GS->PlayerArray.Find(PS);
-	// if (MyIndex == INDEX_NONE) return false;
-	//
-	// return GS->CurrentTurnPlayerIndex == MyIndex;
 }
 
 void AMyPlayerController::ShowItemWidget(const FInputActionValue& Value)
