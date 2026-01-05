@@ -43,8 +43,27 @@ struct FPlayerHandPair
 		: Player(InPlayer), Evaluate(InEval) {}
 };
 
+USTRUCT(BlueprintType)
+struct FShowdownResult
+{
+	GENERATED_BODY()
+
+	// 승자 이름들
+	UPROPERTY(BlueprintReadOnly)
+	FString WinnerNames;
+	// 최고 HandRank
+	UPROPERTY(BlueprintReadOnly)
+	EHandRank HighestRank;
+
+	FShowdownResult()
+	: WinnerNames(TEXT("")), HighestRank(EHandRank::HighCard) {}
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, EHoldemPhase, NewPhase);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTurnChanged, int32, NewTurnIndex);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnShowdownResultChanged,
+	FString, WinnerNames, EHandRank, HighestRank);
 
 UCLASS()
 class HOLDEM_API AHoldemGameState : public AGameStateBase
@@ -193,6 +212,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GamePhase")
 	TArray<APlayerState*> DetermineWinner(const TArray<APlayerState*>& ActivePlayers);
 
+protected:
+	// 결과 UI Replicate 정보
+	UPROPERTY(ReplicatedUsing=OnRep_ShowdownResult, BlueprintReadOnly, Category="GamePhase")
+	FShowdownResult CurrentShowdownResult;
+
+	UFUNCTION()
+	void OnRep_ShowdownResult();
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "GamePhase")
+	FOnShowdownResultChanged OnShowdownResultChanged;
+
+	// ResultWidget 결과 설정
+	void SetShowdownResult(const FString& WinnerNames, EHandRank HighstRank);
+	// ResultWidget 결과 초기화
+	void ClearShowdownResult();
+	
 public:
 	//---------------------------------------------------//
 	// Betting

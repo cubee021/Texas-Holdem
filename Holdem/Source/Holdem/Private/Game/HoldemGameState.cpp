@@ -41,6 +41,8 @@ void AHoldemGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AHoldemGameState, CurrentTurnPlayerIndex);
 	
 	DOREPLIFETIME(AHoldemGameState, DealerPosition);
+
+	DOREPLIFETIME(AHoldemGameState, CurrentShowdownResult);
 }
 
 void AHoldemGameState::GenerateDeck()
@@ -317,6 +319,29 @@ TArray<APlayerState*> AHoldemGameState::DetermineWinner(const TArray<APlayerStat
 		}
 	}
 	return Winners;
+}
+
+void AHoldemGameState::OnRep_ShowdownResult()
+{
+	if (OnShowdownResultChanged.IsBound())
+	{
+		OnShowdownResultChanged.Broadcast(
+			CurrentShowdownResult.WinnerNames, CurrentShowdownResult.HighestRank);
+	}
+}
+
+void AHoldemGameState::SetShowdownResult(const FString& WinnerNames, EHandRank HighstRank)
+{
+	CurrentShowdownResult.WinnerNames = WinnerNames;
+	CurrentShowdownResult.HighestRank = HighstRank;
+
+	OnRep_ShowdownResult();
+}
+
+void AHoldemGameState::ClearShowdownResult()
+{
+	CurrentShowdownResult.WinnerNames = TEXT("");
+	CurrentShowdownResult.HighestRank = EHandRank::HighCard;
 }
 
 void AHoldemGameState::OnRep_CurrentTurnPlayerIndex()

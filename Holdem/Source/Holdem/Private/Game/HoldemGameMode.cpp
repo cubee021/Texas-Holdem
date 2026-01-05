@@ -273,6 +273,34 @@ void AHoldemGameMode::StartShowdown()
 		// 승자 판정 
 		TArray<APlayerState*> Winners = GS->DetermineWinner(ActivePlayers);
 
+		// Result 결과 업데이트
+		if (Winners.Num() > 0)
+		{
+			FString WinnerNames;
+			EHandRank WinningRank = EHandRank::HighCard;
+
+			for (int32 i=0; i<Winners.Num(); i++)
+			{
+				AHoldemPlayerState* WinnerPS = Cast<AHoldemPlayerState>(Winners[i]);
+				if (WinnerPS)
+				{
+					// 승자들 이름
+					if (i > 0) WinnerNames += TEXT(" ");
+					WinnerNames += WinnerPS->GetPlayerName();
+
+					// 최고패
+					if (i == 0)
+					{
+						TArray<ACard*> AllCards = GS->CommunityCards;
+						AllCards.Append(WinnerPS->HandCards);
+						FHandEvaluation Eval = GS->HandEvaluator->GetBestHandFrom7Cards(AllCards);
+						WinningRank = Eval.Rank;
+					}
+				}
+			}
+			GS->SetShowdownResult(WinnerNames, WinningRank);
+		}
+		
 		// 최종 결과 로그
 		if (Winners.Num() > 0)
 		{
@@ -529,6 +557,9 @@ void AHoldemGameMode::PrepareNextRound()
 {
 	AHoldemGameState* GS = GetGameState<AHoldemGameState>();
 	if (!GS) return;
+
+	// ResultWidget 초기화
+	GS->ClearShowdownResult();
 
 	// 모든 플레이어 상태 리셋
 	for (APlayerState* PS : GS->PlayerArray)
