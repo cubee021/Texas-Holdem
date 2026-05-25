@@ -11,7 +11,7 @@
 /prompts  
  ├─ [CLAUDE.md](https://github.com/cubee021/Texas-Holdem/blob/652c4f32b49eb0612cc4abd8776b603dd35a88c2/Holdem/CLAUDE.md)  
  ├─ [commit.md](https://github.com/cubee021/Texas-Holdem/blob/652c4f32b49eb0612cc4abd8776b603dd35a88c2/Holdem/.claude/commands/commit.md)  
- └─ compact.md  
+ └─ [compact.md](https://github.com/cubee021/Texas-Holdem/blob/6ca5d56292252a9b53e357f8e366b2c06fea7226/Holdem/.claude/commands/compact.md)  
 
 /scripts  
  └─ [gen_commit_msg.py](https://github.com/cubee021/Texas-Holdem/blob/652c4f32b49eb0612cc4abd8776b603dd35a88c2/Holdem/Tools/CommitMessage/gen_commit_msg.py)
