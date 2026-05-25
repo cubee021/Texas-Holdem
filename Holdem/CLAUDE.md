@@ -201,7 +201,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Commit 메시지 작성 (Commit Message Generation)
 ### 워크플로우
 
-사용자가 "커밋 메시지 작성해줘!" 또는 유사한 요청을 하면, `.claude/commands/commit.md` 따르세요.
+사용자가 "커밋 메시지 작성해줘" 또는 유사한 요청을 하면:  
+- 반드시 `.claude/commands/commit.md` Read 툴로 읽은 후 그 지시를 따르세요.  
+- 절대 즉흥적으로 작성하지 마세요.
+- 또는 사용자에게 `/commit` 커맨드 사용을 안내하세요.
 
 ### 자주 사용하는 표현
 
