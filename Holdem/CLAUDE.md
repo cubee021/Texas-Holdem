@@ -197,6 +197,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
     1. "한 일 범주 1"
     2. "한 일 범주 2"
 
+
+# Commit 메시지 작성 (Commit Message Generation)
+### 워크플로우
+
+사용자가 "커밋 메시지 작성해줘!" 또는 유사한 요청을 하면, `.claude/commands/commit.md` 따르세요.
+
+### 자주 사용하는 표현
+
+**사용자 요청 예시**:
+- "커밋 메시지 작성해줘"
+- "지금까지 작업한 내용으로 커밋 메시지 만들어줘"
+- "staged 파일 보고 커밋 메시지 생성해줘"
+- "커밋할 내용 정리해줘"
+
+**모두 동일하게 처리**: staged 파일 확인 → 분석 → 커밋 메시지 생성  
+
+---
+
 ## Project Overview
 
 This is an Unreal Engine 5.6 project called "Holdem" - a C++ game project built on Windows using DirectX 12. The project appears to be a poker/card game implementation with basic player character and UI systems.
