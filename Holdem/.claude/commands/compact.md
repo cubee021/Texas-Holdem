@@ -1,3 +1,7 @@
+---
+description: 현재까지의 작업 내용을 요약하고 Compact Log를 생성합니다
+---
+
 # Compact Log 생성
 
 ## 실행 내용
